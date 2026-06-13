@@ -39,6 +39,9 @@ public static class DependencyInjection
         services.AddScoped<IPriceHistoryService, PriceHistoryService>();
         services.AddScoped<IWatchlistService, WatchlistService>();
         services.AddScoped<IPriceAlertService, PriceAlertService>();
+        services.AddScoped<ICatalogService, CatalogService>();
+        services.AddScoped<ICatalogDiscoveryService, CatalogDiscoveryService>();
+        services.AddScoped<ISellerInventoryService, SellerInventoryService>();
 
         services.AddScoped<ICardCatalogProvider, MockCatalogProvider>();
         services.AddScoped<IMarketplaceListingProvider, MockMarketplaceListingProvider>();

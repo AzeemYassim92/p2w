@@ -76,6 +76,27 @@ public interface IDataProviderRegistry
     IReadOnlyList<ICardDataProvider> AllProviders { get; }
 }
 
+public interface ICatalogService
+{
+    Task<IReadOnlyList<GameDto>> GetGamesAsync(bool primaryOnly, CancellationToken ct);
+    Task<IReadOnlyList<CardSetDto>> GetSetsAsync(Guid? gameId, string? gameSlug, bool? upcoming, int take, CancellationToken ct);
+    Task<IReadOnlyList<ProductCategoryDto>> GetCategoriesAsync(CancellationToken ct);
+    Task<IReadOnlyList<CatalogProductDto>> GetProductsAsync(CatalogProductQuery query, CancellationToken ct);
+    Task<CatalogProductDetailDto?> GetProductDetailAsync(Guid productId, CancellationToken ct);
+    Task<IReadOnlyList<ProviderCapabilityDto>> GetProviderCapabilitiesAsync(CancellationToken ct);
+}
+
+public interface ICatalogDiscoveryService
+{
+    Task<MarketplaceHomeDto> GetMarketplaceHomeAsync(string? gameSlug, CancellationToken ct);
+}
+
+public interface ISellerInventoryService
+{
+    Task<IReadOnlyList<SellerInventoryItemDto>> GetInventoryAsync(Guid sellerUserId, CancellationToken ct);
+    Task<SellerInventoryItemDto> CreateInventoryItemAsync(Guid sellerUserId, CreateSellerInventoryItemRequest request, CancellationToken ct);
+}
+
 public sealed class ProviderHealthCheckResult
 {
     public string SourceName { get; set; } = "";

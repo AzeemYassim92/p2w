@@ -1,6 +1,6 @@
 # P2W Cards
 
-P2W Cards is an MVP trading card marketplace and price aggregation platform for Pokemon and Magic: The Gathering cards. It proves the search, listing aggregation, reference pricing, watchlist, alert, provider, and background refresh flow without checkout, payments, seller onboarding, or scraping.
+P2W Cards is an MVP trading card marketplace and price aggregation platform for trading cards. It proves the product catalog, search, listing aggregation, reference pricing, watchlist, alert, provider, and background refresh flow without checkout, payments, seller onboarding, or scraping.
 
 ## Tech Stack
 
@@ -26,6 +26,20 @@ client/
 ```
 
 Controllers are intentionally thin. Business workflows live behind application interfaces. EF Core, providers, current user handling, and background jobs live in infrastructure.
+
+## Part 2 Catalog Core
+
+The catalog layer adds marketplace-ready product structure without replacing the original card/search MVP:
+
+- Games: Magic: The Gathering, Pokemon, One Piece as primary focus games, with additional inactive/future-ready TCG rows.
+- Sets: recent and upcoming set records for primary games.
+- Categories: singles, sealed, booster packs, booster boxes, ETBs, decks, graded cards, accessories, supplies, deals, and related subcategories.
+- Products: catalog products for individual cards, packs, boxes, decks, and sealed products.
+- Variants: product-level variant scaffolding for normal, foil, promo, sealed case, and future expansion.
+- Seller inventory: catalog-backed seller inventory items with condition, quantity, asking price, grading fields, and image URL rows.
+- Import tracking: catalog import runs and import errors for future provider ingestion jobs.
+
+Part 2 intentionally does not add real external imports, checkout, payments, shipping, image upload storage, AI grading, or auth changes.
 
 ## Quick Start
 
@@ -114,6 +128,18 @@ The current suite covers search, game filters, mock providers, listing refresh a
 ## Example API Calls
 
 ```http
+GET /api/marketplace/home
+GET /api/marketplace/home?gameSlug=pokemon
+GET /api/catalog/games?primaryOnly=true
+GET /api/catalog/categories
+GET /api/catalog/sets?gameSlug=magic-the-gathering
+GET /api/catalog/sets?gameSlug=pokemon&upcoming=true
+GET /api/catalog/products?gameSlug=one-piece&take=12
+GET /api/catalog/products?categorySlug=booster-packs
+GET /api/catalog/products/{catalogProductId}
+GET /api/catalog/providers/capabilities
+GET /api/seller-inventory
+POST /api/seller-inventory
 GET /api/cards/search?query=charizard&game=Pokemon
 GET /api/cards/featured?productType=individual-cards&take=10
 GET /api/cards/search?query=sol%20ring&game=Magic
@@ -140,6 +166,14 @@ External Source -> Provider Adapter -> External DTO -> Normalization -> SQL Serv
 
 Mock providers are enabled by default. Real providers are scaffolded as safe disabled placeholders for TCGplayer, eBay, Scryfall, Pokemon TCG, MTGJSON, PriceCharting, and Card Kingdom. Disabled providers return empty results and health information without throwing.
 
+The catalog provider capability endpoint exposes where each connector is expected to fit:
+
+- Scryfall: Magic catalog metadata and images.
+- PokemonTCG: Pokemon catalog metadata and images.
+- TCGplayer: catalog search, marketplace listing, and price reference candidate.
+- eBay: broad marketplace listings.
+- MTGJSON, PriceCharting, Card Kingdom: price/reference candidates.
+
 To add a real provider:
 
 1. Add an options class or extend the existing provider options.
@@ -155,6 +189,9 @@ The EF model seeds:
 
 - Marketplaces: MockMarket, eBay, TCGplayer, Card Kingdom, PriceCharting, Cardmarket
 - External sources: Mock, TCGplayer, eBay, Scryfall, MTGJSON, PokemonTCG, PriceCharting, CardKingdom, Cardmarket
+- Primary catalog games: Magic: The Gathering, Pokemon, One Piece
+- Product categories: singles, sealed, packs, boxes, ETBs, decks, graded cards, supplies, deals, and related children
+- Catalog sets and products for Magic, Pokemon, and One Piece
 - Pokemon cards: Charizard, Pikachu, Blastoise, Mewtwo, Gengar, Rayquaza, Lugia, Umbreon
 - Magic cards: Black Lotus, Sol Ring, Lightning Bolt, Counterspell, Mox Diamond, Mana Crypt, Rhystic Study, Dockside Extortionist
 
@@ -163,19 +200,22 @@ The EF model seeds:
 1. Apply EF migrations.
 2. Run the backend.
 3. Run the frontend.
-4. Search `Charizard` at `/cards/search`.
-5. Review the 10 featured individual card records on the marketplace page.
-6. Open the card detail.
-7. Refresh listings.
-8. Refresh reference prices and capture a listing snapshot.
-9. Add the card to the watchlist.
-10. Create a target price alert.
-11. Review watchlist and alerts.
+4. Open the marketplace home and switch between Magic, Pokemon, and One Piece.
+5. Review category tiles, trending products, featured products, latest sets, upcoming sets, and provider readiness.
+6. Use Search for `Charizard` or `Sol Ring`.
+7. Open the card detail.
+8. Refresh listings.
+9. Refresh reference prices and capture a listing snapshot.
+10. Add the card to the watchlist.
+11. Create a target price alert.
+12. Review watchlist, alerts, and seller inventory.
 
 ## Known Limitations
 
 - No checkout, payment processing, seller onboarding, or order management.
 - No website scraping.
+- No real catalog import job yet; import run/error tables are ready for that future workflow.
+- Seller inventory accepts image URLs, but no file upload/storage pipeline exists yet.
 - Real marketplace/catalog providers are placeholders until official credentials/access are configured.
 - Alerts are logged and marked as triggered; email/SMS/push is intentionally out of scope.
 - The frontend uses a lightweight in-memory route switch instead of a router package.
@@ -183,6 +223,8 @@ The EF model seeds:
 ## Roadmap
 
 - Replace placeholder providers with official API integrations.
+- Build catalog import jobs for Scryfall, PokemonTCG, TCGplayer, and other approved APIs.
+- Add seller inventory forms, product matching workflow, and listing review.
 - Add authenticated user accounts and JWT configuration.
 - Add collection tracking.
 - Add richer pricing charts.

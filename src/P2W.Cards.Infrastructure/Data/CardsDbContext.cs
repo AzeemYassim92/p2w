@@ -3,7 +3,7 @@ using P2W.Cards.Domain.Entities;
 
 namespace P2W.Cards.Infrastructure.Data;
 
-public sealed class CardsDbContext(DbContextOptions<CardsDbContext> options) : DbContext(options)
+public sealed partial class CardsDbContext(DbContextOptions<CardsDbContext> options) : DbContext(options)
 {
     public DbSet<Card> Cards => Set<Card>();
     public DbSet<CardVariant> CardVariants => Set<CardVariant>();
@@ -15,12 +15,24 @@ public sealed class CardsDbContext(DbContextOptions<CardsDbContext> options) : D
     public DbSet<PriceReferenceSnapshot> PriceReferenceSnapshots => Set<PriceReferenceSnapshot>();
     public DbSet<WatchlistItem> WatchlistItems => Set<WatchlistItem>();
     public DbSet<PriceAlert> PriceAlerts => Set<PriceAlert>();
+    public DbSet<Game> Games => Set<Game>();
+    public DbSet<CardSet> CardSets => Set<CardSet>();
+    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
+    public DbSet<CatalogProduct> CatalogProducts => Set<CatalogProduct>();
+    public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
+    public DbSet<SellerInventoryItem> SellerInventoryItems => Set<SellerInventoryItem>();
+    public DbSet<SellerInventoryImage> SellerInventoryImages => Set<SellerInventoryImage>();
+    public DbSet<ExternalProductMapping> ExternalProductMappings => Set<ExternalProductMapping>();
+    public DbSet<CatalogImportRun> CatalogImportRuns => Set<CatalogImportRun>();
+    public DbSet<CatalogImportError> CatalogImportErrors => Set<CatalogImportError>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureCards(modelBuilder);
         ConfigurePrices(modelBuilder);
+        ConfigureCatalog(modelBuilder);
         Seed(modelBuilder);
+        SeedCatalog(modelBuilder);
     }
 
     private static void ConfigureCards(ModelBuilder modelBuilder)

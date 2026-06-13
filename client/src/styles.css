@@ -16,6 +16,7 @@ nav {
   background: #ffffff;
   position: sticky;
   top: 0;
+  z-index: 10;
 }
 
 main {
@@ -46,6 +47,12 @@ button {
   background: #0f766e;
   color: white;
   cursor: pointer;
+}
+
+.secondary-button,
+nav button:nth-child(n + 2) {
+  background: #ffffff;
+  color: #1e293b;
 }
 
 input {
@@ -216,12 +223,238 @@ th, td {
   color: #b91c1c;
 }
 
+.marketplace-home {
+  max-width: 1240px;
+}
+
+.marketplace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #dbe3ea;
+}
+
+.marketplace-header p {
+  max-width: 720px;
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.marketplace-actions,
+.game-tabs,
+.category-grid,
+.set-grid,
+.provider-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.game-tabs {
+  margin: 22px 0;
+}
+
+.game-tabs button,
+.category-tile {
+  background: #ffffff;
+  color: #1e293b;
+}
+
+.game-tabs button.active {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: 28px;
+}
+
+.category-tile {
+  min-height: 88px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  text-align: left;
+  border-color: #dbe3ea;
+  background: #ffffff;
+}
+
+.category-tile span {
+  font-weight: 800;
+}
+
+.category-tile small {
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.catalog-image-wrap {
+  display: grid;
+  place-items: center;
+  min-height: 232px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.catalog-image-wrap img {
+  width: 100%;
+  max-height: 232px;
+  object-fit: contain;
+}
+
+.catalog-image-wrap img.official-card-back {
+  width: min(164px, 82%);
+  aspect-ratio: 63 / 88;
+  max-height: 232px;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 10px 22px rgb(15 23 42 / 0.18);
+}
+
+.card-back {
+  width: min(164px, 82%);
+  aspect-ratio: 63 / 88;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  border: 8px solid #111827;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 900;
+  text-align: center;
+  box-shadow: 0 10px 22px rgb(15 23 42 / 0.18);
+}
+
+.card-back::before,
+.card-back::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  border: 3px solid rgb(255 255 255 / 0.72);
+}
+
+.card-back::after {
+  inset: 38px;
+  border-width: 2px;
+  transform: rotate(28deg);
+}
+
+.card-back span {
+  position: relative;
+  z-index: 1;
+  max-width: 85%;
+  line-height: 1.05;
+  text-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+}
+
+.pokemon-back {
+  background:
+    radial-gradient(circle at 50% 48%, #ffffff 0 10%, #ef4444 11% 18%, transparent 19%),
+    radial-gradient(circle at 52% 50%, #60a5fa 0, #1d4ed8 42%, #172554 100%);
+  color: #fde047;
+}
+
+.magic-back {
+  background:
+    radial-gradient(circle at 50% 44%, #facc15 0 8%, transparent 9%),
+    radial-gradient(circle at 36% 34%, #38bdf8 0 8%, transparent 9%),
+    radial-gradient(circle at 64% 34%, #f97316 0 8%, transparent 9%),
+    radial-gradient(circle at 40% 64%, #22c55e 0 8%, transparent 9%),
+    radial-gradient(circle at 60% 64%, #a855f7 0 8%, transparent 9%),
+    linear-gradient(145deg, #0f172a, #334155);
+}
+
+.one-piece-back {
+  background:
+    radial-gradient(circle at 50% 45%, #f8fafc 0 9%, transparent 10%),
+    linear-gradient(135deg, #b91c1c 0 35%, #111827 36% 62%, #d97706 63% 100%);
+  color: #fef3c7;
+}
+
+.set-grid,
+.provider-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  margin-bottom: 28px;
+}
+
+.set-card,
+.provider-card {
+  display: flex;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.set-card img {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background: #e2e8f0;
+}
+
+.set-card p,
+.provider-card p {
+  margin: 4px 0;
+  color: #475569;
+}
+
+.provider-card {
+  display: grid;
+}
+
+.provider-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.status-on,
+.status-off {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.status-on {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.status-off {
+  color: #7c2d12;
+  background: #ffedd5;
+}
+
 @media (max-width: 720px) {
   main {
     padding: 16px;
   }
 
   .detail-header {
+    display: block;
+  }
+
+  .marketplace-header {
     display: block;
   }
 

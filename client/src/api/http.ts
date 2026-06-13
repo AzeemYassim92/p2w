@@ -1,4 +1,4 @@
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5087';
+const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:5087';
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
