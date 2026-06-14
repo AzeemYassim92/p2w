@@ -57,6 +57,46 @@ export type CatalogProduct = {
   isTrending: boolean;
 };
 
+export type CatalogProductDetail = CatalogProduct & {
+  artist?: string;
+  description?: string;
+  isGradedEligible: boolean;
+  variants: ProductVariant[];
+  externalMappings: ExternalProductMapping[];
+};
+
+export type ProductVariant = {
+  productVariantId: string;
+  variantName: string;
+  language?: string;
+  isFoil: boolean;
+  isReverseHolo: boolean;
+  isFirstEdition: boolean;
+  isPromo: boolean;
+  isSerialized: boolean;
+  isSealedCase: boolean;
+};
+
+export type ExternalProductMapping = {
+  sourceName: string;
+  externalId: string;
+  externalUrl?: string;
+  externalSlug?: string;
+  confidenceScore?: number;
+};
+
+export type CatalogPriceSnapshot = {
+  catalogPriceReferenceSnapshotId: string;
+  catalogProductId: string;
+  sourceName: string;
+  marketPrice?: number;
+  lowPrice?: number;
+  midPrice?: number;
+  highPrice?: number;
+  currency: string;
+  capturedAtUtc: string;
+};
+
 export type ProviderCapability = {
   sourceName: string;
   supportsMagic: boolean;

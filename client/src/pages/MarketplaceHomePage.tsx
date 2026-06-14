@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getMarketplaceHome } from '../api/catalogApi';
 import type { CatalogProduct, CardSet, Game, MarketplaceHome, ProductCategory, ProviderCapability } from '../types/catalog';
 import { money } from '../utils/money';
+import bannerUrl from '../assets/p2w-collectibles-banner.png';
 
-export function MarketplaceHomePage() {
+export function MarketplaceHomePage({ onOpenProduct }: { onOpenProduct: (productId: string) => void }) {
   const [home, setHome] = useState<MarketplaceHome | null>(null);
   const [activeGame, setActiveGame] = useState<string>('');
   const [error, setError] = useState('');
@@ -19,10 +20,14 @@ export function MarketplaceHomePage() {
 
   return (
     <main className="marketplace-home">
+      <section className="marketplace-banner">
+        <img src={bannerUrl} alt="P2W Collectibles Marketplace" />
+      </section>
+
       <section className="marketplace-header">
         <div>
           <p className="eyebrow">Trading card catalog</p>
-          <h1>P2W Cards Marketplace</h1>
+          <h1>P2W Collectibles Marketplace</h1>
           <p>Browse singles, packs, boxes, and upcoming sets across the games we are prioritizing first.</p>
         </div>
         <div className="marketplace-actions">
@@ -37,8 +42,8 @@ export function MarketplaceHomePage() {
       {home && (
         <>
           <CategoryGrid categories={categories} />
-          <ProductSection title="Trending Now" products={home.trendingProducts} />
-          <ProductSection title="Featured Products" products={home.featuredProducts} />
+          <ProductSection title="Trending Now" products={home.trendingProducts} onOpenProduct={onOpenProduct} />
+          <ProductSection title="Featured Products" products={home.featuredProducts} onOpenProduct={onOpenProduct} />
           <SetSection title="Latest Sets" sets={home.latestSets} />
           <SetSection title="Upcoming Sets" sets={home.upcomingSets} />
           <ProviderCapabilityPanel providers={home.providerCapabilities} />
@@ -79,8 +84,10 @@ function CategoryGrid({ categories }: { categories: ProductCategory[] }) {
   );
 }
 
-function ProductSection({ title, products }: { title: string; products: CatalogProduct[] }) {
-  if (products.length === 0) {
+function ProductSection({ title, products, onOpenProduct }: { title: string; products: CatalogProduct[]; onOpenProduct: (productId: string) => void }) {
+  const displayProducts = groupDisplayProducts(products);
+
+  if (displayProducts.length === 0) {
     return null;
   }
 
@@ -88,21 +95,33 @@ function ProductSection({ title, products }: { title: string; products: CatalogP
     <section>
       <h2>{title}</h2>
       <div className="market-grid">
-        {products.map((product) => (
+        {displayProducts.map(({ product, printCount }) => (
           <article className="market-product" key={product.catalogProductId}>
-            <CatalogProductImage product={product} />
-            <div>
-              <p className="product-type">{product.gameName} / {product.categoryName}</p>
-              <h3>{product.name}</h3>
-              <p>{product.setName ?? 'No set'}{product.setCode ? ` · ${product.setCode}` : ''}</p>
-              <p>{product.rarity ?? product.productType}{product.cardNumber ? ` · ${product.cardNumber}` : ''}</p>
-            </div>
-            <div className="price-row">
-              <strong>{money(product.estimatedMarketPrice ?? 0)}</strong>
+            <button className="product-open-area" onClick={() => onOpenProduct(product.catalogProductId)}>
+              <CatalogProductImage product={product} />
+              <div className="product-summary">
+                <p className="product-type">{product.gameName} / {product.categoryName}</p>
+                <h3 className="product-name">{product.name}</h3>
+                <div className="product-meta">
+                  <span>{product.setName ?? 'No set'}{product.setCode ? ` / ${product.setCode}` : ''}</span>
+                  <span>{product.rarity ?? product.productType}{product.cardNumber ? ` / ${product.cardNumber}` : ''}</span>
+                </div>
+                {printCount > 1 && <span className="printing-badge">{printCount} printings</span>}
+              </div>
+            </button>
+            <div className="offer-stack">
+              <button className="card-action card-action-blue" onClick={() => onOpenProduct(product.catalogProductId)}>P2W Details</button>
               {product.primarySourceUrl && (
-                <a href={product.primarySourceUrl} target="_blank" rel="noreferrer">
-                  {product.primarySourceName}
+                <a className="market-offer" href={product.primarySourceUrl} target="_blank" rel="noreferrer">
+                  <strong>{money(product.estimatedMarketPrice ?? 0)}</strong>
+                  <span>{product.primarySourceName}</span>
                 </a>
+              )}
+              {!product.primarySourceUrl && (
+                <span className="market-offer">
+                  <strong>{money(product.estimatedMarketPrice ?? 0)}</strong>
+                  <span>Market</span>
+                </span>
               )}
             </div>
           </article>
@@ -115,9 +134,30 @@ function ProductSection({ title, products }: { title: string; products: CatalogP
 function CatalogProductImage({ product }: { product: CatalogProduct }) {
   const [failed, setFailed] = useState(false);
   const [backFailed, setBackFailed] = useState(false);
-  const shouldUseBack = failed || !product.imageUrl || product.imageUrl.includes('placehold.co');
+  const [popoutSide, setPopoutSide] = useState<'left' | 'right'>('right');
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const isPlaceholder = !product.imageUrl || product.imageUrl.includes('placehold.co');
+  const shouldUseFallback = failed || isPlaceholder;
+  const isOnePiece = product.gameName.toLowerCase().includes('one piece');
+  const placePopout = () => {
+    const rect = wrapRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setPopoutSide(window.innerWidth - rect.right < 430 ? 'left' : 'right');
+  };
 
-  if (shouldUseBack) {
+  if (shouldUseFallback) {
+    if (isOnePiece) {
+      return (
+        <div className="catalog-image-wrap">
+          <div className="one-piece-product-fallback">
+            <small>{product.setCode ?? product.setName ?? 'One Piece TCG'}</small>
+            <strong>{product.name}</strong>
+            <span>{product.cardNumber ?? product.productType}</span>
+          </div>
+        </div>
+      );
+    }
+
     const backUrl = cardBackUrl(product.gameName);
     return (
       <div className="catalog-image-wrap">
@@ -133,8 +173,11 @@ function CatalogProductImage({ product }: { product: CatalogProduct }) {
   }
 
   return (
-    <div className="catalog-image-wrap">
+    <div ref={wrapRef} className={`catalog-image-wrap popout-${popoutSide}`} onMouseEnter={placePopout}>
       <img src={product.imageUrl} alt={product.name} loading="lazy" onError={() => setFailed(true)} />
+      <div className="card-art-popout" aria-hidden="true">
+        <img src={product.imageUrl} alt="" loading="lazy" />
+      </div>
     </div>
   );
 }
@@ -158,13 +201,32 @@ function cardBackUrl(gameName: string) {
   if (normalized.includes('pokemon')) {
     return 'https://upload.wikimedia.org/wikipedia/en/thumb/3/3b/Pokemon_Trading_Card_Game_cardback.jpg/250px-Pokemon_Trading_Card_Game_cardback.jpg';
   }
-  if (normalized.includes('one piece')) {
-    return 'https://upload.wikimedia.org/wikipedia/en/3/32/One_Piece_Card_Game_back.webp';
-  }
   if (normalized.includes('magic')) {
     return 'https://upload.wikimedia.org/wikipedia/en/thumb/a/aa/Magic_the_gathering-card_back.jpg/250px-Magic_the_gathering-card_back.jpg';
   }
   return '';
+}
+
+function groupDisplayProducts(products: CatalogProduct[]) {
+  const groups = new Map<string, { product: CatalogProduct; printCount: number }>();
+  for (const product of products) {
+    const key = [
+      product.gameName.toLowerCase(),
+      product.setName?.toLowerCase() ?? '',
+      product.categoryName.toLowerCase(),
+      product.name.toLowerCase()
+    ].join('|');
+
+    const existing = groups.get(key);
+    if (existing) {
+      existing.printCount += 1;
+      continue;
+    }
+
+    groups.set(key, { product, printCount: 1 });
+  }
+
+  return [...groups.values()];
 }
 
 function SetSection({ title, sets }: { title: string; sets: CardSet[] }) {
@@ -181,7 +243,7 @@ function SetSection({ title, sets }: { title: string; sets: CardSet[] }) {
             <img src={set.symbolUrl} alt="" />
             <div>
               <strong>{set.name}</strong>
-              <p>{set.gameName} · {set.code ?? 'TBD'}</p>
+              <p>{set.gameName} / {set.code ?? 'TBD'}</p>
               <p>{set.releaseDate ? new Date(set.releaseDate).toLocaleDateString() : 'Release TBD'}</p>
             </div>
           </article>

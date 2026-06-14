@@ -97,6 +97,55 @@ public interface ISellerInventoryService
     Task<SellerInventoryItemDto> CreateInventoryItemAsync(Guid sellerUserId, CreateSellerInventoryItemRequest request, CancellationToken ct);
 }
 
+public interface ICatalogImportService
+{
+    Task<CatalogImportRunDto> StartImportAsync(StartCatalogImportRequest request, CancellationToken ct);
+    Task<CatalogImportPreviewDto> PreviewImportAsync(StartCatalogImportRequest request, CancellationToken ct);
+    Task<CatalogImportRunDetailDto?> GetImportRunAsync(Guid importRunId, CancellationToken ct);
+    Task<IReadOnlyList<CatalogImportRunDto>> GetImportRunsAsync(string? sourceName, int take, CancellationToken ct);
+}
+
+public interface IExternalCatalogProvider
+{
+    string SourceName { get; }
+    bool IsEnabled { get; }
+    Task<ExternalCatalogImportResult> ImportAsync(CatalogImportContext context, CancellationToken ct);
+    Task<ExternalCatalogImportPreview> PreviewAsync(CatalogImportContext context, CancellationToken ct);
+}
+
+public interface ICatalogProductMatchingService
+{
+    Task<CatalogProductMatchResult> FindBestMatchAsync(ExternalCatalogProductDto externalProduct, CancellationToken ct);
+    Task<ExternalProductMappingDto> CreateOrUpdateMappingAsync(Guid catalogProductId, ExternalCatalogProductDto externalProduct, decimal confidenceScore, CancellationToken ct);
+}
+
+public interface IImportCheckpointService
+{
+    Task<CatalogImportCheckpointDto?> GetCheckpointAsync(string sourceName, string importType, CancellationToken ct);
+    Task SaveCheckpointAsync(string sourceName, string importType, string checkpointValue, CancellationToken ct);
+}
+
+public interface IMappingReviewService
+{
+    Task<IReadOnlyList<MappingReviewDto>> GetMappingsForReviewAsync(string? status, int take, CancellationToken ct);
+    Task<MappingReviewDto?> ApproveAsync(Guid mappingId, CancellationToken ct);
+    Task<MappingReviewDto?> RejectAsync(Guid mappingId, CancellationToken ct);
+    Task<MappingReviewDto?> SaveNotesAsync(Guid mappingId, string? notes, CancellationToken ct);
+}
+
+public interface IExternalPricingProvider
+{
+    string SourceName { get; }
+    bool IsEnabled { get; }
+    Task<IReadOnlyList<ExternalPriceReferenceDto>> GetPricesForProductAsync(CatalogProductDto product, IReadOnlyList<ExternalProductMappingDto> mappings, CancellationToken ct);
+}
+
+public interface ICatalogPricingService
+{
+    Task<IReadOnlyList<CatalogPriceReferenceSnapshotDto>> GetPriceHistoryAsync(Guid catalogProductId, CancellationToken ct);
+    Task RefreshPricesForProductAsync(Guid catalogProductId, CancellationToken ct);
+}
+
 public sealed class ProviderHealthCheckResult
 {
     public string SourceName { get; set; } = "";

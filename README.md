@@ -41,6 +41,21 @@ The catalog layer adds marketplace-ready product structure without replacing the
 
 Part 2 intentionally does not add real external imports, checkout, payments, shipping, image upload storage, AI grading, or auth changes.
 
+## Part 3 Catalog Import Architecture
+
+Catalog imports are provider-based. Dry runs call a provider, normalize external records, match against the existing catalog, and return create/update/skip counts before any writes happen.
+
+- Scryfall is the first Magic metadata provider and uses official Scryfall API endpoints.
+- PokemonTCG is the first Pokemon metadata provider and uses the official Pokemon TCG API.
+- Real imports create `CatalogImportRun` records, upsert sets/products/variants, create external mappings, and write record-level `CatalogImportError` rows.
+- Imports page through provider APIs and save resume checkpoints so later runs continue from the next page instead of replaying page one.
+- PokemonTCG uses numeric API pages. Scryfall uses its returned `next_page` URL.
+- External mappings are confidence-scored and marked `AutoMatched` or `NeedsReview`.
+- Mapping review endpoints can approve, reject, and save notes.
+- Catalog pricing has its own snapshot table, but only mock pricing is implemented for now.
+
+Images are stored as URLs only. The app does not download or store image binaries.
+
 ## Quick Start
 
 Use two processes during local development:
@@ -70,7 +85,7 @@ http://127.0.0.1:5174
 For local React development, the client calls the API over HTTP:
 
 ```text
-http://localhost:5087
+http://127.0.0.1:5087
 ```
 
 ## Run Backend
@@ -109,7 +124,7 @@ npm install
 npm run dev
 ```
 
-The frontend calls the API at `http://localhost:5087` by default. If Visual Studio chooses a different API port, create `client/.env.local`:
+The frontend calls the API at `http://127.0.0.1:5087` by default. If Visual Studio chooses a different API port, create `client/.env.local`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:YOUR_API_PORT
@@ -121,9 +136,11 @@ Then restart `npm run dev`.
 
 ```powershell
 dotnet test P2W.Cards.sln
+cd client
+npm run build
 ```
 
-The current suite covers search, game filters, mock providers, listing refresh and de-dupe, condition normalization, price snapshot math, watchlist behavior, alerts, disabled providers, and provider registry behavior.
+The current suite covers search, game filters, mock providers, listing refresh and de-dupe, condition normalization, price snapshot math, watchlist behavior, alerts, disabled providers, provider registry behavior, catalog discovery, seller inventory, import previews/runs, provider normalization, mapping review, and mock catalog pricing.
 
 ## Example API Calls
 
@@ -138,6 +155,16 @@ GET /api/catalog/products?gameSlug=one-piece&take=12
 GET /api/catalog/products?categorySlug=booster-packs
 GET /api/catalog/products/{catalogProductId}
 GET /api/catalog/providers/capabilities
+POST /api/catalog/import/preview
+POST /api/catalog/import/run
+GET /api/catalog/import/runs
+GET /api/catalog/import/runs/{importRunId}
+GET /api/catalog/mappings/review?status=NeedsReview&take=50
+PATCH /api/catalog/mappings/{mappingId}/approve
+PATCH /api/catalog/mappings/{mappingId}/reject
+PATCH /api/catalog/mappings/{mappingId}/notes
+GET /api/catalog/products/{catalogProductId}/pricing/history
+POST /api/catalog/products/{catalogProductId}/pricing/refresh
 GET /api/seller-inventory
 POST /api/seller-inventory
 GET /api/cards/search?query=charizard&game=Pokemon
@@ -183,6 +210,18 @@ To add a real provider:
 5. Register the provider in `DependencyInjection`.
 6. Add tests for disabled and enabled behavior.
 
+## Catalog Import Flow
+
+Use the Import tab in the React app for admin-style ingestion:
+
+1. Pick the provider and import type.
+2. Run a dry run first to see read/create/update/skip counts.
+3. Run the import when the preview looks right.
+4. Leave `Use checkpoint` on to resume from the last saved provider cursor.
+5. Leave `Save next` on to store the next cursor after a successful import.
+
+Duplicates are prevented by `ExternalProductMappings(SourceName, ExternalId)`, backed up by normalized game/set/card-number/name matching. Re-importing the same provider records should update mapped products instead of creating new catalog products.
+
 ## Seed Data
 
 The EF model seeds:
@@ -214,7 +253,7 @@ The EF model seeds:
 
 - No checkout, payment processing, seller onboarding, or order management.
 - No website scraping.
-- No real catalog import job yet; import run/error tables are ready for that future workflow.
+- Catalog imports are synchronous admin actions for now; background scheduling and live per-card streaming progress are still future work.
 - Seller inventory accepts image URLs, but no file upload/storage pipeline exists yet.
 - Real marketplace/catalog providers are placeholders until official credentials/access are configured.
 - Alerts are logged and marked as triggered; email/SMS/push is intentionally out of scope.

@@ -34,8 +34,10 @@ public sealed partial class CardsDbContext
             e.HasIndex(x => x.GameId);
             e.HasIndex(x => x.Slug);
             e.HasIndex(x => new { x.GameId, x.Name }).IsUnique();
+            e.HasIndex(x => new { x.GameId, x.NormalizedName });
             e.HasIndex(x => new { x.GameId, x.Code });
             e.Property(x => x.Name).HasMaxLength(180);
+            e.Property(x => x.NormalizedName).HasMaxLength(180);
             e.Property(x => x.Slug).HasMaxLength(200);
         });
 
@@ -54,11 +56,14 @@ public sealed partial class CardsDbContext
             e.HasIndex(x => x.ProductCategoryId);
             e.HasIndex(x => x.Slug);
             e.HasIndex(x => x.Name);
+            e.HasIndex(x => x.NormalizedName);
             e.HasIndex(x => x.ProductType);
             e.HasIndex(x => x.IsFeatured);
             e.HasIndex(x => x.IsTrending);
             e.HasIndex(x => new { x.GameId, x.Name, x.CardSetId });
+            e.HasIndex(x => new { x.GameId, x.CardSetId, x.CardNumber, x.NormalizedName });
             e.Property(x => x.Name).HasMaxLength(240);
+            e.Property(x => x.NormalizedName).HasMaxLength(240);
             e.Property(x => x.Slug).HasMaxLength(260);
             e.Property(x => x.ProductType).HasMaxLength(80);
             e.HasMany(x => x.Variants).WithOne(x => x.CatalogProduct).HasForeignKey(x => x.CatalogProductId);
@@ -88,7 +93,9 @@ public sealed partial class CardsDbContext
         {
             e.HasIndex(x => x.CatalogProductId);
             e.HasIndex(x => new { x.SourceName, x.ExternalId }).IsUnique();
+            e.HasIndex(x => x.MappingStatus);
             e.Property(x => x.ConfidenceScore).HasPrecision(18, 2);
+            e.Property(x => x.MappingStatus).HasMaxLength(40).HasDefaultValue("AutoMatched");
         });
 
         modelBuilder.Entity<CatalogImportRun>(e =>
@@ -104,6 +111,26 @@ public sealed partial class CardsDbContext
             e.HasIndex(x => x.CatalogImportRunId);
             e.HasIndex(x => x.SourceName);
             e.HasIndex(x => x.ExternalId);
+        });
+
+        modelBuilder.Entity<CatalogImportCheckpoint>(e =>
+        {
+            e.HasIndex(x => new { x.SourceName, x.ImportType }).IsUnique();
+            e.Property(x => x.SourceName).HasMaxLength(100);
+            e.Property(x => x.ImportType).HasMaxLength(40);
+        });
+
+        modelBuilder.Entity<CatalogPriceReferenceSnapshot>(e =>
+        {
+            e.HasIndex(x => x.CatalogProductId);
+            e.HasIndex(x => x.ProductVariantId);
+            e.HasIndex(x => x.SourceName);
+            e.HasIndex(x => x.CapturedAtUtc);
+            e.HasIndex(x => new { x.CatalogProductId, x.SourceName, x.CapturedAtUtc });
+            foreach (var property in new[] { "MarketPrice", "LowPrice", "MidPrice", "HighPrice", "UngradedPrice", "Grade7Price", "Grade8Price", "Grade9Price", "Grade10Price", "BuylistPrice", "RetailPrice" })
+            {
+                e.Property<decimal?>(property).HasPrecision(18, 2);
+            }
         });
     }
 
@@ -216,6 +243,7 @@ public sealed partial class CardsDbContext
             Id = x.Id,
             GameId = x.GameId,
             Name = x.Name,
+            NormalizedName = NormalizeSeedName(x.Name),
             Slug = x.Slug,
             Code = x.Code,
             ReleaseDate = x.Release,
@@ -243,6 +271,7 @@ public sealed partial class CardsDbContext
                 CardSetId = set.Id,
                 ProductCategoryId = categoryId,
                 Name = name,
+                NormalizedName = NormalizeSeedName(name),
                 Slug = Slug(name),
                 ProductType = type,
                 CardNumber = number,
@@ -296,6 +325,9 @@ public sealed partial class CardsDbContext
     }
 
     private static string Slug(string value) => value.ToLowerInvariant().Replace(":", "").Replace("!", "").Replace(".", "").Replace(" ", "-");
+
+    private static string NormalizeSeedName(string value)
+        => value.ToLowerInvariant().Replace("pokemon", "pokemon").Replace("pokémon", "pokemon").Replace("magic: the gathering", "mtg").Replace(":", "").Replace("!", "").Replace(".", "").Replace("-", " ").Replace("  ", " ").Trim();
 
     private static string Image(Guid gameId, string name)
     {

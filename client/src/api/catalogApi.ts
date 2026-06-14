@@ -1,5 +1,5 @@
 import { request } from './http';
-import type { CatalogProduct, MarketplaceHome, SellerInventoryItem } from '../types/catalog';
+import type { CatalogPriceSnapshot, CatalogProduct, CatalogProductDetail, MarketplaceHome, SellerInventoryItem } from '../types/catalog';
 
 export function getMarketplaceHome(gameSlug?: string) {
   const suffix = gameSlug ? `?gameSlug=${encodeURIComponent(gameSlug)}` : '';
@@ -13,6 +13,18 @@ export function getCatalogProducts(params: { gameSlug?: string; categorySlug?: s
   if (params.query) search.set('query', params.query);
   if (params.take) search.set('take', String(params.take));
   return request<CatalogProduct[]>(`/api/catalog/products?${search.toString()}`);
+}
+
+export function getCatalogProductDetail(productId: string) {
+  return request<CatalogProductDetail>(`/api/catalog/products/${productId}`);
+}
+
+export function getCatalogPricingHistory(productId: string) {
+  return request<CatalogPriceSnapshot[]>(`/api/catalog/products/${productId}/pricing/history`);
+}
+
+export function refreshCatalogPricing(productId: string) {
+  return request<void>(`/api/catalog/products/${productId}/pricing/refresh`, { method: 'POST' });
 }
 
 export function getSellerInventory() {

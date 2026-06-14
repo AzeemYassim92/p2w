@@ -21,6 +21,7 @@ public sealed class CardSet
     public Guid GameId { get; set; }
     public Game? Game { get; set; }
     public string Name { get; set; } = "";
+    public string NormalizedName { get; set; } = "";
     public string Slug { get; set; } = "";
     public string? Code { get; set; }
     public DateTime? ReleaseDate { get; set; }
@@ -56,6 +57,7 @@ public sealed class CatalogProduct
     public Guid ProductCategoryId { get; set; }
     public ProductCategory? ProductCategory { get; set; }
     public string Name { get; set; } = "";
+    public string NormalizedName { get; set; } = "";
     public string Slug { get; set; } = "";
     public string ProductType { get; set; } = "";
     public string? CardNumber { get; set; }
@@ -134,8 +136,43 @@ public sealed class ExternalProductMapping
     public string? ExternalUrl { get; set; }
     public string? ExternalSlug { get; set; }
     public decimal? ConfidenceScore { get; set; }
+    public string MappingStatus { get; set; } = "AutoMatched";
+    public string? MappingNotes { get; set; }
     public DateTime CreatedUtc { get; set; }
     public DateTime? LastVerifiedUtc { get; set; }
+}
+
+public sealed class CatalogImportCheckpoint
+{
+    public Guid Id { get; set; }
+    public string SourceName { get; set; } = "";
+    public string ImportType { get; set; } = "";
+    public string CheckpointValue { get; set; } = "";
+    public DateTime UpdatedUtc { get; set; }
+}
+
+public sealed class CatalogPriceReferenceSnapshot
+{
+    public Guid Id { get; set; }
+    public Guid CatalogProductId { get; set; }
+    public CatalogProduct? CatalogProduct { get; set; }
+    public Guid? ProductVariantId { get; set; }
+    public ProductVariant? ProductVariant { get; set; }
+    public string SourceName { get; set; } = "";
+    public decimal? MarketPrice { get; set; }
+    public decimal? LowPrice { get; set; }
+    public decimal? MidPrice { get; set; }
+    public decimal? HighPrice { get; set; }
+    public decimal? UngradedPrice { get; set; }
+    public decimal? Grade7Price { get; set; }
+    public decimal? Grade8Price { get; set; }
+    public decimal? Grade9Price { get; set; }
+    public decimal? Grade10Price { get; set; }
+    public decimal? BuylistPrice { get; set; }
+    public decimal? RetailPrice { get; set; }
+    public string Currency { get; set; } = "USD";
+    public string? RawSourceJson { get; set; }
+    public DateTime CapturedAtUtc { get; set; }
 }
 
 public sealed class CatalogImportRun

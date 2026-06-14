@@ -10,6 +10,8 @@ using P2W.Cards.Infrastructure.BackgroundJobs;
 using P2W.Cards.Infrastructure.CurrentUser;
 using P2W.Cards.Infrastructure.Data;
 using P2W.Cards.Infrastructure.Providers.Common;
+using P2W.Cards.Infrastructure.Providers.PokemonTcg;
+using P2W.Cards.Infrastructure.Providers.Scryfall;
 using P2W.Cards.Infrastructure.Services;
 
 namespace P2W.Cards.Infrastructure;
@@ -19,6 +21,7 @@ public static class DependencyInjection
     public static IServiceCollection AddCardsInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<CardOptions>(configuration.GetSection("Cards"));
+        services.Configure<CatalogImportOptions>(configuration.GetSection("CatalogImport"));
         services.Configure<MockProviderOptions>(configuration.GetSection("Providers:Mock"));
         services.Configure<TcgPlayerOptions>(configuration.GetSection("Providers:TcgPlayer"));
         services.Configure<EbayOptions>(configuration.GetSection("Providers:Ebay"));
@@ -32,6 +35,8 @@ public static class DependencyInjection
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddHttpContextAccessor();
+        services.AddHttpClient<ScryfallApiClient>();
+        services.AddHttpClient<PokemonTcgApiClient>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<ConditionNormalizer>();
         services.AddScoped<ICardSearchService, CardSearchService>();
@@ -42,6 +47,14 @@ public static class DependencyInjection
         services.AddScoped<ICatalogService, CatalogService>();
         services.AddScoped<ICatalogDiscoveryService, CatalogDiscoveryService>();
         services.AddScoped<ISellerInventoryService, SellerInventoryService>();
+        services.AddScoped<ICatalogImportService, CatalogImportService>();
+        services.AddScoped<ICatalogProductMatchingService, CatalogProductMatchingService>();
+        services.AddScoped<IImportCheckpointService, ImportCheckpointService>();
+        services.AddScoped<IMappingReviewService, MappingReviewService>();
+        services.AddScoped<ICatalogPricingService, CatalogPricingService>();
+        services.AddScoped<IExternalPricingProvider, MockCatalogPricingProvider>();
+        services.AddScoped<IExternalCatalogProvider, ScryfallCatalogImportProvider>();
+        services.AddScoped<IExternalCatalogProvider, PokemonTcgCatalogImportProvider>();
 
         services.AddScoped<ICardCatalogProvider, MockCatalogProvider>();
         services.AddScoped<IMarketplaceListingProvider, MockMarketplaceListingProvider>();

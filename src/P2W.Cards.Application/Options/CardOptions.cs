@@ -7,6 +7,13 @@ public sealed class CardOptions
     public bool EnableRawSourceJsonStorage { get; set; } = true;
 }
 
+public sealed class CatalogImportOptions
+{
+    public int DefaultMaxRecords { get; set; } = 250;
+    public int HardMaxRecords { get; set; } = 5000;
+    public bool EnableDryRun { get; set; } = true;
+}
+
 public class ProviderSwitchOptions
 {
     public bool Enabled { get; set; }

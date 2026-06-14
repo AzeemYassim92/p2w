@@ -25,6 +25,8 @@ public sealed partial class CardsDbContext(DbContextOptions<CardsDbContext> opti
     public DbSet<ExternalProductMapping> ExternalProductMappings => Set<ExternalProductMapping>();
     public DbSet<CatalogImportRun> CatalogImportRuns => Set<CatalogImportRun>();
     public DbSet<CatalogImportError> CatalogImportErrors => Set<CatalogImportError>();
+    public DbSet<CatalogImportCheckpoint> CatalogImportCheckpoints => Set<CatalogImportCheckpoint>();
+    public DbSet<CatalogPriceReferenceSnapshot> CatalogPriceReferenceSnapshots => Set<CatalogPriceReferenceSnapshot>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
