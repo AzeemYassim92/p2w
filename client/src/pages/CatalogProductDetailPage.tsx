@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getCatalogPricingHistory, getCatalogProductDetail, refreshCatalogPricing } from '../api/catalogApi';
-import type { CatalogPriceSnapshot, CatalogProductDetail, ProductVariant } from '../types/catalog';
+import type { CatalogPriceSnapshot, CatalogProductDetail } from '../types/catalog';
 import { money } from '../utils/money';
 
 const conditions = [
@@ -11,9 +11,7 @@ const conditions = [
   { label: 'Damaged', short: 'DMG', multiplier: 0.28 }
 ];
 
-const chartMultipliers = [0.91, 0.95, 0.93, 0.98, 1.02, 0.99, 1.08, 1.0];
-
-export function CatalogProductDetailPage({ productId, onBack }: { productId: string; onBack: () => void }) {
+export function CatalogProductDetailPage({ productId, onBack, onOpenPricing }: { productId: string; onBack: () => void; onOpenPricing: () => void }) {
   const [product, setProduct] = useState<CatalogProductDetail | null>(null);
   const [prices, setPrices] = useState<CatalogPriceSnapshot[]>([]);
   const [error, setError] = useState('');
@@ -27,8 +25,12 @@ export function CatalogProductDetailPage({ productId, onBack }: { productId: str
         getCatalogProductDetail(productId),
         getCatalogPricingHistory(productId)
       ]);
-      setProduct(detail);
-      setPrices(history);
+      setProduct({
+        ...detail,
+        variants: Array.isArray(detail.variants) ? detail.variants : [],
+        externalMappings: Array.isArray(detail.externalMappings) ? detail.externalMappings : []
+      });
+      setPrices(Array.isArray(history) ? history : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Product failed to load');
     }
@@ -64,8 +66,6 @@ export function CatalogProductDetailPage({ productId, onBack }: { productId: str
   const marketPrice = latestPrice?.marketPrice ?? product.estimatedMarketPrice ?? 0;
   const listedMedian = latestPrice?.midPrice ?? marketPrice * 0.98;
   const lowPrice = latestPrice?.lowPrice ?? marketPrice * 0.86;
-  const highPrice = latestPrice?.highPrice ?? marketPrice * 1.24;
-  const variants = product.variants.length > 0 ? product.variants : fallbackVariants(product);
   const primaryCondition = conditions[0];
 
   return (
@@ -121,27 +121,13 @@ export function CatalogProductDetailPage({ productId, onBack }: { productId: str
               price={listedMedian}
               onRefresh={() => void refreshPrices()}
               isRefreshing={isRefreshing}
+              onOpenPricing={onOpenPricing}
             />
-            <button className="other-listings-button">View 11 Other Listings <small>As low as {money(lowPrice)}</small></button>
+            <button className="other-listings-button" onClick={onOpenPricing}>View Market Pricing <small>As low as {money(lowPrice)}</small></button>
             <div className="seller-links">
               <button>Sell this</button>
               <button>Report a problem</button>
             </div>
-          </aside>
-        </section>
-
-        <section className="price-content-grid">
-          <MarketHistory snapshots={prices} fallbackPrice={marketPrice} />
-          <aside className="price-sidebar">
-            <ComparisonPrices variants={variants} marketPrice={marketPrice} />
-            <PricePoints
-              marketPrice={marketPrice}
-              listedMedian={listedMedian}
-              highPrice={highPrice}
-              quantity={126}
-              sellers={10}
-            />
-            <SnapshotPanel marketPrice={marketPrice} />
           </aside>
         </section>
       </main>
@@ -158,7 +144,7 @@ function ProductDetails({ product }: { product: CatalogProductDetail }) {
         {product.cardNumber && <><dt>#:</dt><dd>{product.cardNumber}</dd></>}
         <dt>Card Type:</dt><dd>{product.productType}</dd>
         {product.artist && <><dt>Artist:</dt><dd>{product.artist}</dd></>}
-        <dt>Catalog:</dt><dd>{product.externalMappings.length > 0 ? `${product.externalMappings.length} provider mapping${product.externalMappings.length === 1 ? '' : 's'}` : 'Awaiting provider mapping'}</dd>
+        <dt>Catalog:</dt><dd>{providerMappingText(product.externalMappings)}</dd>
       </dl>
     </div>
   );
@@ -178,12 +164,18 @@ function LegalityPanel({ product }: { product: CatalogProductDetail }) {
   );
 }
 
-function BuyBox({ condition, product, price, onRefresh, isRefreshing }: {
+function providerMappingText(mappings: CatalogProductDetail['externalMappings'] | undefined) {
+  const count = mappings?.length ?? 0;
+  return count > 0 ? `${count} provider mapping${count === 1 ? '' : 's'}` : 'Awaiting provider mapping';
+}
+
+function BuyBox({ condition, product, price, onRefresh, isRefreshing, onOpenPricing }: {
   condition: string;
   product: CatalogProductDetail;
   price: number;
   onRefresh: () => void;
   isRefreshing: boolean;
+  onOpenPricing: () => void;
 }) {
   return (
     <section className="buy-box">
@@ -197,96 +189,8 @@ function BuyBox({ condition, product, price, onRefresh, isRefreshing }: {
         <button>Add to Cart</button>
       </div>
       <p className="financing-line">Pay in 4 interest-free payments on purchases of {money(price)} or more.</p>
+      <button className="secondary-button refresh-link" onClick={onOpenPricing}>Open Market Pricing</button>
       <button className="secondary-button refresh-link" onClick={onRefresh} disabled={isRefreshing}>{isRefreshing ? 'Refreshing...' : `Refresh ${product.primarySourceName ?? 'price'}`}</button>
-    </section>
-  );
-}
-
-function MarketHistory({ snapshots, fallbackPrice }: { snapshots: CatalogPriceSnapshot[]; fallbackPrice: number }) {
-  const points = snapshots.length > 0 ? snapshots.slice(0, 8).reverse() : demoSnapshots(fallbackPrice);
-  const max = Math.max(...points.map((point) => point.marketPrice ?? fallbackPrice), fallbackPrice);
-  const min = Math.min(...points.map((point) => point.marketPrice ?? fallbackPrice), fallbackPrice);
-
-  return (
-    <section className="market-history-card">
-      <div className="price-section-heading">
-        <h2>Market Price History</h2>
-        <span>Near Mint {money(fallbackPrice)} <b>-6.40%</b></span>
-      </div>
-      <div className="chart-shell">
-        <div className="chart-axis">
-          <span>{money(max)}</span>
-          <span>{money((max + min) / 2)}</span>
-          <span>{money(min)}</span>
-        </div>
-        <div className="line-chart">
-          {points.map((point, index) => {
-            const value = point.marketPrice ?? fallbackPrice;
-            const pct = max === min ? 50 : ((value - min) / (max - min)) * 100;
-            return <span key={`${point.capturedAtUtc}-${index}`} style={{ left: `${index * (100 / Math.max(points.length - 1, 1))}%`, bottom: `${pct}%` }} />;
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ComparisonPrices({ variants, marketPrice }: { variants: ProductVariant[]; marketPrice: number }) {
-  const normal = variants.find((variant) => !variant.isFoil && !variant.isReverseHolo) ?? variants[0];
-  const premium = variants.find((variant) => variant.isFoil || variant.isReverseHolo) ?? variants[1] ?? variants[0];
-  return (
-    <section className="side-price-card">
-      <h2>Near Mint Comparison Prices</h2>
-      <p>Market prices for alternative printings and conditions</p>
-      <div className="comparison-row">
-        <span>{normal?.variantName ?? 'Normal'}: <strong>{money(marketPrice)}</strong></span>
-        <span>{premium?.variantName ?? 'Premium'}: <strong>{money(marketPrice * 1.58)}</strong></span>
-      </div>
-    </section>
-  );
-}
-
-function PricePoints({ marketPrice, listedMedian, highPrice, quantity, sellers }: { marketPrice: number; listedMedian: number; highPrice: number; quantity: number; sellers: number }) {
-  return (
-    <section className="price-points-card">
-      <div className="price-points-header">
-        <h2>Price Points</h2>
-        <span>Near Mint</span>
-      </div>
-      <div className="price-point-total">
-        <div>
-          <strong>Market Price</strong>
-          <small>Most Recent Sale</small>
-        </div>
-        <b>{money(marketPrice)}</b>
-      </div>
-      <div className="volatility-bar">
-        <span />
-        <i style={{ left: '42%' }} />
-        <i style={{ left: '74%' }} />
-      </div>
-      <dl>
-        <div><dt>Listed Median:</dt><dd>{money(listedMedian)}</dd></div>
-        <div><dt>Current Quantity:</dt><dd>{quantity}</dd></div>
-        <div><dt>Current Sellers:</dt><dd>{sellers}</dd></div>
-        <div><dt>High:</dt><dd>{money(highPrice)}</dd></div>
-      </dl>
-    </section>
-  );
-}
-
-function SnapshotPanel({ marketPrice }: { marketPrice: number }) {
-  return (
-    <section className="snapshot-card">
-      <div>
-        <h2>3 Month Snapshot</h2>
-        <button>View More Data</button>
-      </div>
-      <dl>
-        <div><dt>Average Sale</dt><dd>{money(marketPrice * 0.97)}</dd></div>
-        <div><dt>Low Sale</dt><dd>{money(marketPrice * 0.72)}</dd></div>
-        <div><dt>High Sale</dt><dd>{money(marketPrice * 1.31)}</dd></div>
-      </dl>
     </section>
   );
 }
@@ -302,47 +206,6 @@ function ProductImage({ product }: { product: CatalogProductDetail }) {
       )}
     </figure>
   );
-}
-
-function fallbackVariants(product: CatalogProductDetail): ProductVariant[] {
-  return [
-    {
-      productVariantId: `${product.catalogProductId}-normal`,
-      variantName: product.isSealed ? 'Sealed' : 'Normal',
-      language: 'EN',
-      isFoil: false,
-      isReverseHolo: false,
-      isFirstEdition: false,
-      isPromo: false,
-      isSerialized: false,
-      isSealedCase: product.isSealed
-    },
-    {
-      productVariantId: `${product.catalogProductId}-foil`,
-      variantName: product.isSealed ? 'Case' : 'Foil',
-      language: 'EN',
-      isFoil: true,
-      isReverseHolo: false,
-      isFirstEdition: false,
-      isPromo: false,
-      isSerialized: false,
-      isSealedCase: false
-    }
-  ];
-}
-
-function demoSnapshots(price: number): CatalogPriceSnapshot[] {
-  return chartMultipliers.map((multiplier, index) => ({
-    catalogPriceReferenceSnapshotId: `demo-${index}`,
-    catalogProductId: 'demo',
-    sourceName: 'Demo',
-    marketPrice: price * multiplier,
-    lowPrice: price * multiplier * 0.86,
-    midPrice: price * multiplier,
-    highPrice: price * multiplier * 1.24,
-    currency: 'USD',
-    capturedAtUtc: new Date(Date.now() - (chartMultipliers.length - index) * 86400000).toISOString()
-  }));
 }
 
 function detailFallback(product: CatalogProductDetail) {

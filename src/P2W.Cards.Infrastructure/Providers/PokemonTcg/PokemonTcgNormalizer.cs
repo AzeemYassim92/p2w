@@ -17,6 +17,7 @@ public static class PokemonTcgNormalizer
         CardNumber = card.Number,
         Rarity = card.Rarity,
         Artist = card.Artist,
+        Description = BuildDescription(card),
         ImageUrl = card.Images?.Large ?? card.Images?.Small,
         ExternalUrl = card.TcgPlayer?.Url,
         VariantNames = BuildVariants(card),
@@ -37,11 +38,40 @@ public static class PokemonTcgNormalizer
 
     private static IReadOnlyList<string> BuildVariants(PokemonTcgCardDto card)
     {
+        var priceKeys = card.TcgPlayer?.Prices?.Keys
+            .Where(key => !string.IsNullOrWhiteSpace(key))
+            .Select(NormalizeVariantName)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (priceKeys?.Length > 0)
+        {
+            return priceKeys;
+        }
+
         var variants = new List<string> { "normal" };
         if (card.Rarity?.Contains("holo", StringComparison.OrdinalIgnoreCase) == true) variants.Add("holofoil");
         variants.Add("reverse holo");
         return variants.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
+
+    private static string? BuildDescription(PokemonTcgCardDto card)
+    {
+        var lines = card.Rules?
+            .Where(rule => !string.IsNullOrWhiteSpace(rule))
+            .Select(rule => rule.Trim())
+            .ToArray();
+
+        return lines is { Length: > 0 } ? string.Join(Environment.NewLine, lines) : null;
+    }
+
+    private static string NormalizeVariantName(string key) => key.Trim() switch
+    {
+        "reverseHolofoil" => "reverse holofoil",
+        "1stEditionHolofoil" => "1st edition holofoil",
+        "1stEditionNormal" => "1st edition normal",
+        var value => value
+    };
 
     private static DateTime? ParseDate(string? value)
     {

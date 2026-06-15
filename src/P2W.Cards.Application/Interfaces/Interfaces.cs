@@ -1,4 +1,5 @@
 using P2W.Cards.Application.DTOs;
+using P2W.Cards.Domain.Entities;
 using P2W.Cards.Domain.Enums;
 
 namespace P2W.Cards.Application.Interfaces;
@@ -144,6 +145,89 @@ public interface ICatalogPricingService
 {
     Task<IReadOnlyList<CatalogPriceReferenceSnapshotDto>> GetPriceHistoryAsync(Guid catalogProductId, CancellationToken ct);
     Task RefreshPricesForProductAsync(Guid catalogProductId, CancellationToken ct);
+}
+
+public interface IMarketplaceReferencePriceProvider
+{
+    string SourceName { get; }
+    bool IsEnabled { get; }
+    Task<IReadOnlyList<ExternalReferencePriceDto>> GetReferencePricesAsync(CatalogProduct product, IReadOnlyList<ExternalProductMapping> mappings, CancellationToken ct);
+}
+
+public interface IMarketplaceActiveListingProvider
+{
+    string SourceName { get; }
+    bool IsEnabled { get; }
+    Task<IReadOnlyList<ExternalMarketplaceListingDto>> GetCurrentListingsAsync(CatalogProduct product, MarketplaceSearchContext context, CancellationToken ct);
+}
+
+public interface IMarketplaceSoldCompsProvider
+{
+    string SourceName { get; }
+    bool IsEnabled { get; }
+    Task<IReadOnlyList<ExternalMarketplaceSaleDto>> GetRecentSalesAsync(CatalogProduct product, MarketplaceSearchContext context, DateTime sinceUtc, CancellationToken ct);
+}
+
+public interface IMarketAggregationService
+{
+    Task<MarketAggregationResultDto> RefreshProductMarketDataAsync(Guid catalogProductId, MarketRefreshRequest request, CancellationToken ct);
+    Task<MarketAggregationResultDto> RefreshSetMarketDataAsync(Guid cardSetId, MarketRefreshRequest request, CancellationToken ct);
+    Task<MarketAggregationResultDto> RefreshRecentlyViewedAsync(MarketRefreshRequest request, CancellationToken ct);
+    Task<MarketAggregationResultDto> RefreshWatchlistedAsync(MarketRefreshRequest request, CancellationToken ct);
+    Task<MarketAggregationResultDto> RefreshTrendingAsync(MarketRefreshRequest request, CancellationToken ct);
+    Task<IReadOnlyList<MarketAggregationResultDto>> GetRunsAsync(int take, CancellationToken ct);
+    Task<MarketAggregationResultDto?> GetRunAsync(Guid runId, CancellationToken ct);
+}
+
+public interface IMarketSummaryService
+{
+    Task<ProductMarketSummaryDto?> GetSummaryAsync(Guid catalogProductId, CancellationToken ct);
+}
+
+public interface IMarketMetricsService
+{
+    Task ComputeMetricsForProductAsync(Guid catalogProductId, string condition, string currency, CancellationToken ct);
+    Task<IReadOnlyList<CatalogMarketMetricDto>> GetMetricsAsync(Guid catalogProductId, CancellationToken ct);
+}
+
+public interface IMarketChartService
+{
+    Task<MarketChartDto> GetMarketChartAsync(Guid catalogProductId, MarketChartRequest request, CancellationToken ct);
+}
+
+public interface IMarketplaceComparisonService
+{
+    Task<MarketplaceComparisonDto> GetComparisonAsync(Guid catalogProductId, MarketplaceComparisonRequest request, CancellationToken ct);
+}
+
+public interface IDealScannerService
+{
+    Task<IReadOnlyList<DealOpportunityDto>> GetDealsAsync(DealScanRequest request, CancellationToken ct);
+    Task<DealScoreDto> ScoreListingAsync(CatalogMarketplaceListing listing, CancellationToken ct);
+}
+
+public interface IMarketConfidenceService
+{
+    Task<MarketConfidenceDto> ComputeConfidenceAsync(Guid catalogProductId, CancellationToken ct);
+}
+
+public interface ISetMarketDashboardService
+{
+    Task<SetMarketDashboardDto?> GetDashboardAsync(Guid cardSetId, CancellationToken ct);
+    Task<SetMarketDashboardDto?> GetDashboardBySlugAsync(string gameSlug, string setSlug, CancellationToken ct);
+}
+
+public interface ICatalogWatchlistService
+{
+    Task<IReadOnlyList<WatchlistIntelligenceDto>> GetUserWatchlistAsync(Guid userId, CancellationToken ct);
+    Task<WatchlistIntelligenceDto> AddAsync(Guid userId, CreateCatalogWatchlistItemRequest request, CancellationToken ct);
+    Task RemoveAsync(Guid userId, Guid id, CancellationToken ct);
+    Task<IReadOnlyList<WatchlistIntelligenceDto>> GetIntelligenceAsync(Guid userId, CancellationToken ct);
+}
+
+public interface IMarketProviderHealthService
+{
+    Task<IReadOnlyList<ProviderHealthDto>> GetHealthAsync(CancellationToken ct);
 }
 
 public sealed class ProviderHealthCheckResult

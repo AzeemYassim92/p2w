@@ -18,7 +18,7 @@ Last updated: 2026-06-14.
 - [ ] `Search`: connect global search text to the marketplace/catalog search query instead of only routing to the legacy search page.
 - [ ] `US / USD` country selector: persist selected country/currency.
 - [ ] `US / USD` country selector: connect to currency conversion, shipping region, tax/VAT assumptions, and later language.
-- [ ] `Wishlist`: convert from legacy card watchlist to catalog-product watchlist.
+- [x] `Wishlist`: convert from legacy card watchlist to catalog-product watchlist.
 - [ ] `Cart 0`: build cart page/drawer and show real item count.
 - [ ] `Login`: replace local fake `loggedIn` state with real auth flow.
 - [ ] `Sign Up`: replace local fake `loggedIn` state with real account creation.
@@ -37,7 +37,7 @@ Last updated: 2026-06-14.
 - [ ] Game tabs: currently functional; add URL state/deep links.
 - [ ] Category tiles: make each tile filter product grid/category browse.
 - [ ] Product card image/top-half click: currently opens product detail; verify against all product types.
-- [ ] `P2W Details`: currently opens product detail; keep as canonical internal detail route.
+- [x] `P2W Details`: currently opens product detail; keep as canonical internal detail route.
 - [ ] Green marketplace offer boxes: support multiple live sources per product.
 - [ ] Green marketplace offer boxes: handle missing price/source gracefully.
 - [ ] Card art hover preview: currently works for real images; prevent horizontal page scroll and test edge cases.
@@ -79,13 +79,13 @@ Last updated: 2026-06-14.
 
 ### Watchlist And Alerts
 
-- [ ] Convert watchlist model from legacy `CardId` to `CatalogProductId` and optional `ProductVariantId`.
+- [x] Convert watchlist model from legacy `CardId` to `CatalogProductId` and optional `ProductVariantId`.
 - [ ] Add watchlist button to marketplace cards.
 - [ ] Add watchlist button to product detail page.
 - [ ] Add alert creation from product detail page.
 - [ ] Add alert types: below target price, restock, price spike/drop, volume spike.
 - [ ] Add notification delivery settings: email, SMS, in-app, later push.
-- [ ] Add watchlist market summary: current price, change, trend, last updated.
+- [x] Add watchlist market summary: current price, change, trend, last updated.
 
 ### Seller Inventory
 
@@ -125,12 +125,15 @@ Last updated: 2026-06-14.
 
 ### Data Model
 
-- [ ] Add catalog-level live listing table.
-- [ ] Add catalog-level sold/completed sales table.
-- [ ] Add catalog-level market price snapshot table.
-- [ ] Add catalog-level market metrics table.
-- [ ] Add provider ingestion run/error/checkpoint tables for aggregation.
-- [ ] Add provider SKU/mapping table at product and variant level.
+- [x] Add catalog-level live listing table.
+- [x] Add catalog-level sold/completed sales table.
+- [x] Add catalog-level market price snapshot table.
+- [x] Add catalog-level market metrics table.
+- [x] Add provider ingestion run/error/checkpoint tables for aggregation.
+- [x] Add provider SKU/mapping table at product and variant level.
+- [ ] Add provider observation table for successful identity match but missing price/listing/sold payload.
+- [ ] Add external set mapping table so display set codes do not get confused with provider set ids.
+- [ ] Add per-product provider coverage table/materialized view: identity resolved, reference price present, listings present, sold comps present, last success, last no-data reason.
 - [ ] Add normalized condition model for market data.
 - [ ] Add currency/exchange-rate model.
 - [ ] Add marketplace fee/shipping estimate model.
@@ -138,8 +141,11 @@ Last updated: 2026-06-14.
 ### Provider Connectors
 
 - [ ] TCGplayer product/price connector.
-- [ ] eBay active listing connector.
-- [ ] eBay sold/completed listing connector.
+- [ ] Decide whether PokemonTCG remains identity/catalog-only for customer-facing confidence or can be used as a low-coverage reference source.
+- [ ] Add provider yield metrics: attempted products, matched products, priced products, listed products, sold-comp products, zero-row reasons.
+- [x] eBay active listing connector scaffold.
+- [ ] eBay active listing OAuth token exchange and live Browse API execution.
+- [x] eBay sold/completed listing connector disabled scaffold.
 - [ ] Card Kingdom retail/buylist connector.
 - [ ] PriceCharting connector.
 - [ ] Cardmarket connector for international expansion.
@@ -153,14 +159,16 @@ Last updated: 2026-06-14.
 - [ ] Build variant matching: language, foil, reverse holo, first edition, promo, serialized.
 - [ ] Build sealed product matching: pack, box, case, bundle, ETB, UPC/GTIN where available.
 - [ ] Build graded matching: company, grade, cert where available.
-- [ ] Store match confidence and exclude low-confidence data from customer-facing prices.
+- [x] Store match confidence and exclude low-confidence data from customer-facing prices.
 - [ ] Create review workflow for low-confidence/high-value mappings.
 
 ### Analytics
 
-- [ ] Compute current market price by product/variant/condition/source.
-- [ ] Compute listing median, low, high, average.
-- [ ] Compute sold comp median, low, high, average.
+- [x] Compute current market price by product/variant/condition/source.
+- [x] Compute listing median, low, high, average.
+- [x] Compute sold comp median, low, high, average.
+- [ ] Separate identity confidence from market confidence.
+- [ ] Do not compute customer-facing market price from catalog-only identity matches.
 - [ ] Compute volume score.
 - [ ] Compute trend score.
 - [ ] Compute volatility score.
@@ -169,8 +177,8 @@ Last updated: 2026-06-14.
 - [ ] Compute high-margin opportunity score.
 - [ ] Compute buylist arbitrage opportunity score.
 - [ ] Compute watchlist movers.
-- [ ] Feed trending products from computed analytics.
-- [ ] Feed high-volume products from computed analytics.
+- [x] Feed trending products from computed analytics.
+- [x] Feed high-volume products from computed analytics.
 - [ ] Feed high-margin products from computed analytics.
 
 ## Commerce And Checkout
@@ -205,6 +213,7 @@ Last updated: 2026-06-14.
 
 ## Catalog Quality
 
+- [ ] Use `PRODUCT_DATA_COMPLETENESS_PLAN.md` as the gating checklist before adding more product-detail or market-intelligence features.
 - [ ] Validate PokemonTCG import completion regularly against API `totalCount`.
 - [ ] Validate Scryfall import completion against bulk data/counts.
 - [ ] Add One Piece real catalog/image provider.
@@ -247,10 +256,10 @@ Last updated: 2026-06-14.
 
 - [ ] Unit tests for catalog matching.
 - [ ] Unit tests for condition normalization.
-- [ ] Unit tests for provider parsers.
-- [ ] Unit tests for market metric calculations.
+- [x] Unit tests for provider parsers.
+- [x] Unit tests for market metric calculations.
 - [ ] Integration tests for import checkpoints.
-- [ ] Integration tests for aggregation ingestion runs.
+- [x] Integration tests for aggregation ingestion runs.
 - [ ] API tests for catalog product detail.
 - [ ] API tests for marketplace home.
 - [ ] API tests for cart/checkout when implemented.
@@ -273,4 +282,3 @@ Last updated: 2026-06-14.
 - [ ] Privacy policy.
 - [ ] Marketplace seller terms.
 - [ ] Copyright/licensing review for images and banners.
-

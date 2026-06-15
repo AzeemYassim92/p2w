@@ -10,7 +10,10 @@ using P2W.Cards.Infrastructure.BackgroundJobs;
 using P2W.Cards.Infrastructure.CurrentUser;
 using P2W.Cards.Infrastructure.Data;
 using P2W.Cards.Infrastructure.Providers.Common;
+using P2W.Cards.Infrastructure.Providers.Ebay;
+using P2W.Cards.Infrastructure.Providers.JustTcg;
 using P2W.Cards.Infrastructure.Providers.PokemonTcg;
+using P2W.Cards.Infrastructure.Providers.PriceCharting;
 using P2W.Cards.Infrastructure.Providers.Scryfall;
 using P2W.Cards.Infrastructure.Services;
 
@@ -22,9 +25,13 @@ public static class DependencyInjection
     {
         services.Configure<CardOptions>(configuration.GetSection("Cards"));
         services.Configure<CatalogImportOptions>(configuration.GetSection("CatalogImport"));
+        services.Configure<MarketAggregationOptions>(configuration.GetSection("MarketAggregation"));
+        services.Configure<MarketDiagnosticsOptions>(configuration.GetSection("MarketDiagnostics"));
+        services.Configure<MarketFeesOptions>(configuration.GetSection("MarketFees"));
         services.Configure<MockProviderOptions>(configuration.GetSection("Providers:Mock"));
         services.Configure<TcgPlayerOptions>(configuration.GetSection("Providers:TcgPlayer"));
         services.Configure<EbayOptions>(configuration.GetSection("Providers:Ebay"));
+        services.Configure<JustTcgOptions>(configuration.GetSection("Providers:JustTcg"));
         services.Configure<ScryfallOptions>(configuration.GetSection("Providers:Scryfall"));
         services.Configure<MtgJsonOptions>(configuration.GetSection("Providers:MtgJson"));
         services.Configure<PokemonTcgOptions>(configuration.GetSection("Providers:PokemonTcg"));
@@ -37,8 +44,13 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddHttpClient<ScryfallApiClient>();
         services.AddHttpClient<PokemonTcgApiClient>();
+        services.AddHttpClient<JustTcgApiClient>();
+        services.AddHttpClient<EbayBrowseApiClient>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<ConditionNormalizer>();
+        services.AddSingleton<EbayRateLimiter>();
+        services.AddScoped<EbaySearchQueryBuilder>();
+        services.AddScoped<EbayListingNormalizer>();
         services.AddScoped<ICardSearchService, CardSearchService>();
         services.AddScoped<IListingService, ListingService>();
         services.AddScoped<IPriceHistoryService, PriceHistoryService>();
@@ -52,9 +64,28 @@ public static class DependencyInjection
         services.AddScoped<IImportCheckpointService, ImportCheckpointService>();
         services.AddScoped<IMappingReviewService, MappingReviewService>();
         services.AddScoped<ICatalogPricingService, CatalogPricingService>();
+        services.AddScoped<MarketDiagnosticTrail>();
+        services.AddScoped<IMarketAggregationService, MarketAggregationService>();
+        services.AddScoped<IMarketSummaryService, MarketSummaryService>();
+        services.AddScoped<IMarketMetricsService, MarketMetricsService>();
+        services.AddScoped<IMarketChartService, MarketChartService>();
+        services.AddScoped<IMarketplaceComparisonService, MarketplaceComparisonService>();
+        services.AddScoped<IDealScannerService, DealScannerService>();
+        services.AddScoped<IMarketConfidenceService, MarketConfidenceService>();
+        services.AddScoped<ISetMarketDashboardService, SetMarketDashboardService>();
+        services.AddScoped<ICatalogWatchlistService, CatalogWatchlistService>();
+        services.AddScoped<IMarketProviderHealthService, MarketProviderHealthService>();
         services.AddScoped<IExternalPricingProvider, MockCatalogPricingProvider>();
         services.AddScoped<IExternalCatalogProvider, ScryfallCatalogImportProvider>();
         services.AddScoped<IExternalCatalogProvider, PokemonTcgCatalogImportProvider>();
+        services.AddScoped<IMarketplaceReferencePriceProvider, MockMarketDataProvider>();
+        services.AddScoped<IMarketplaceActiveListingProvider, MockMarketDataProvider>();
+        services.AddScoped<IMarketplaceSoldCompsProvider, MockMarketDataProvider>();
+        services.AddScoped<IMarketplaceReferencePriceProvider, JustTcgReferencePriceProvider>();
+        services.AddScoped<IMarketplaceReferencePriceProvider, PokemonTcgReferencePriceProvider>();
+        services.AddScoped<IMarketplaceReferencePriceProvider, PriceChartingReferenceProvider>();
+        services.AddScoped<IMarketplaceActiveListingProvider, EbayActiveListingProvider>();
+        services.AddScoped<IMarketplaceSoldCompsProvider, EbaySoldCompsProvider>();
 
         services.AddScoped<ICardCatalogProvider, MockCatalogProvider>();
         services.AddScoped<IMarketplaceListingProvider, MockMarketplaceListingProvider>();

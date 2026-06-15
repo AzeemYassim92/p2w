@@ -16,6 +16,12 @@ public sealed class PokemonTcgListResponse<T>
     public int TotalCount { get; set; }
 }
 
+public sealed class PokemonTcgSingleResponse<T>
+{
+    [JsonPropertyName("data")]
+    public T? Data { get; set; }
+}
+
 public sealed class PokemonTcgCardDto
 {
     [JsonPropertyName("id")]
@@ -28,6 +34,12 @@ public sealed class PokemonTcgCardDto
     public string? Rarity { get; set; }
     [JsonPropertyName("artist")]
     public string? Artist { get; set; }
+    [JsonPropertyName("supertype")]
+    public string? Supertype { get; set; }
+    [JsonPropertyName("subtypes")]
+    public List<string>? Subtypes { get; set; }
+    [JsonPropertyName("rules")]
+    public List<string>? Rules { get; set; }
     [JsonPropertyName("set")]
     public PokemonTcgSetDto? Set { get; set; }
     [JsonPropertyName("images")]
@@ -72,4 +84,28 @@ public sealed class PokemonTcgPlayerDto
 {
     [JsonPropertyName("url")]
     public string? Url { get; set; }
+
+    [JsonPropertyName("updatedAt")]
+    public string? UpdatedAt { get; set; }
+
+    [JsonPropertyName("prices")]
+    public Dictionary<string, PokemonTcgPriceDto>? Prices { get; set; }
+}
+
+public sealed class PokemonTcgPriceDto
+{
+    [JsonPropertyName("low")]
+    public decimal? Low { get; set; }
+
+    [JsonPropertyName("mid")]
+    public decimal? Mid { get; set; }
+
+    [JsonPropertyName("high")]
+    public decimal? High { get; set; }
+
+    [JsonPropertyName("market")]
+    public decimal? Market { get; set; }
+
+    [JsonPropertyName("directLow")]
+    public decimal? DirectLow { get; set; }
 }

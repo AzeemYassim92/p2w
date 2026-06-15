@@ -2,7 +2,90 @@
 
 This document captures the current P2W Cards data model and API surface so the marketplace aggregation system can be designed with enough local context. It is intentionally a design handoff document, not just a schema dump.
 
-Current date of this snapshot: 2026-06-14.
+Current date of this snapshot: 2026-06-15.
+
+## Implemented Marketplace Aggregation Slice
+
+The first catalog-level aggregation slice is now implemented in the same .NET solution. It is intentionally API/worker/data-model first, with official-provider scaffolds and demo data clearly labeled until real credentials and approved data access are configured.
+
+## 2026-06-15 Checkpoint Notes
+
+The aggregation slice now has enough real-provider plumbing to start validating product-by-product market evidence:
+
+- eBay active listings can return real active listing rows when local credentials are configured.
+- PokemonTCG can provide reference prices when the card payload has a usable `tcgplayer.prices` object.
+- JustTCG provider configuration has been added as another reference-price path.
+- Product pricing pages now separate marketplace intelligence from the general product detail page.
+- Market rankings and set dashboards now support set-level analytics, buy signals, activity leaders, low-confidence rows, and full set catalog rows.
+- Set dashboard DTOs now return all product rows so the UI is not forced to infer table state from only top-ranked subsets.
+- Product data completeness is now a first-class gating concern. See `PRODUCT_DATA_COMPLETENESS_PLAN.md`.
+
+Important current finding:
+
+- A product can have a correct catalog identity and still lack trustworthy market evidence.
+- Active listings are useful, but sold comps are required for high-confidence market values and deal scores.
+- Existing Pokemon catalog rows need a metadata/variant backfill because earlier imports inferred generic variants before provider price keys were used.
+
+## Current Diagnostic Finding: Source Coverage Gap
+
+During product-detail refresh testing on 2026-06-14, a Pokemon product refresh produced no usable market rows even though catalog identity was correct.
+
+Example diagnostic trail:
+
+- Product: `Lunatone`
+- Set: `Ascended Heroes`
+- Card number: `105`
+- Catalog product id: `de0e3689-48c0-454e-89a9-3cccd431ae70`
+- PokemonTCG external id: `me2pt5-105`
+- Mapping status: `AutoMatched`
+- Mapping confidence: `1.00`
+- PokemonTCG returned the card and `tcgplayer` object.
+- PokemonTCG returned `PriceVariantCount = 0`.
+- `MockMarket` was excluded because the request used real sources.
+- `PriceCharting` was disabled.
+- `eBay` active listings and sold comps were disabled.
+- Result: no reference prices, no listings, no sold comps, no snapshot.
+
+Conclusion:
+
+- This was not a catalog identity failure.
+- This was not a frontend rendering failure.
+- This was a market-source coverage failure.
+- PokemonTCG should be treated as a strong catalog identity provider and an opportunistic reference-price provider, not as a guaranteed pricing source.
+
+Design implication:
+
+- Product identity resolution and market evidence collection must be modeled as separate pipeline stages.
+- A successful identity match can still produce no market data.
+- The system should persist and surface null observations such as "provider matched product, but no price payload was available."
+- Provider health must be measured by coverage and row yield, not only by API availability.
+- Display set codes and provider set ids must not be conflated. For example, a user-facing set code such as `ASH` may not equal PokemonTCG's provider set id such as `me2pt5`.
+
+Implemented projects and files:
+
+- `src/P2W.Cards.Domain/Entities/MarketEntities.cs`
+- `src/P2W.Cards.Infrastructure/Data/CardsDbContext.Market.cs`
+- `src/P2W.Cards.Infrastructure/Services/MarketServices.cs`
+- `src/P2W.Cards.Infrastructure/Providers/Ebay/*`
+- `src/P2W.Cards.Infrastructure/Providers/PokemonTcg/PokemonTcgReferencePriceProvider.cs`
+- `src/P2W.Cards.Infrastructure/Providers/PriceCharting/PriceChartingReferenceProvider.cs`
+- `src/P2W.Cards.Worker.Aggregation`
+- EF migration: `20260614103604_AddMarketplaceAggregation`
+
+Implemented API areas:
+
+- `api/market/aggregation/*`
+- `api/market/products/{catalogProductId}/summary`
+- `api/market/products/{catalogProductId}/confidence`
+- `api/market/products/{catalogProductId}/comparison`
+- `api/market/products/{catalogProductId}/chart`
+- `api/market/products/{catalogProductId}/deals`
+- `api/market/rankings/*`
+- `api/market/sets/*/dashboard`
+- `api/catalog-watchlist`
+- `api/market/providers/health`
+
+Frontend surfaces now exist for product market intelligence, market rankings, deal scanner, catalog watchlist intelligence, set dashboard lookup, and provider health.
 
 ## Current Architecture
 
@@ -438,6 +521,9 @@ Fields:
 | `CertificationNumber` | `string?` | Grading cert |
 | `Quantity` | `int` | Quantity available |
 | `AskingPrice` | `decimal?` | Precision 18,2 |
+| `CostBasis` | `decimal?` | Precision 18,2; seller acquisition cost |
+| `AcquiredAtUtc` | `DateTime?` | Optional acquisition timestamp |
+| `AcquisitionSource` | `string?` | Optional source of acquired inventory |
 | `Currency` | `string` | Default `USD` |
 | `IsAvailableForSale` | `bool` | Availability flag |
 | `CreatedUtc` | `DateTime` | Creation timestamp |
@@ -468,7 +554,7 @@ Indexes:
 Aggregation relevance:
 
 - Internal inventory should eventually participate in market comparisons.
-- Margin/opportunity calculations need seller cost basis, acquisition date, fees, shipping, and fulfillment costs. Those fields do not exist yet.
+- Seller cost basis and acquisition metadata now exist; fee, shipping, and fulfillment-cost modeling still needs a production policy.
 
 #### `SellerInventoryImages`
 
@@ -905,40 +991,96 @@ The marketplace home page currently:
 
 The current product detail page is scaffolded in a TCGplayer-inspired layout and should eventually be fed by backend aggregation APIs.
 
+## Implemented Marketplace Aggregation Tables
+
+These tables were added for the catalog-level aggregation model.
+
+### `MarketplaceSources`
+
+Fields: `Id`, `Name`, `Slug`, `BaseUrl`, `IsActive`, `SupportsListings`, `SupportsSoldComps`, `SupportsBuylist`, `SupportsReferencePrices`, `SupportsBulkCsv`, `DefaultCurrency`, `PriorityRank`, `CreatedUtc`, `UpdatedUtc`.
+
+Seeded sources: eBay, PokemonTCG, PriceCharting, TCGplayer, Cardmarket, P2W Internal, MockMarket.
+
+### `ExternalMarketplaceSkuMappings`
+
+Fields: `Id`, `CatalogProductId`, `ProductVariantId`, `SourceName`, `MarketplaceSourceId`, `ExternalProductId`, `ExternalSku`, `ExternalUrl`, `ExternalSlug`, `MatchConfidence`, `MappingStatus`, `MappingNotes`, `CreatedUtc`, `LastVerifiedUtc`.
+
+Purpose: marketplace/provider SKU mapping separate from catalog import mapping.
+
+### `CatalogMarketplaceListings`
+
+Fields: `Id`, `CatalogProductId`, `ProductVariantId`, `MarketplaceSourceId`, `SourceName`, `ExternalListingId`, `ExternalSku`, `Title`, `Price`, `ShippingPrice`, `EffectivePrice`, `Currency`, `Condition`, `RawCondition`, `Quantity`, `SellerName`, `SellerFeedbackScore`, `SellerFeedbackPercentage`, `SellerLocation`, `ListingUrl`, `ImageUrl`, `IsAuction`, `AuctionEndsUtc`, `ListedAtUtc`, `CapturedAtUtc`, `LastSeenUtc`, `IsActive`, `MatchConfidence`, `MatchStatus`, `IsExcludedFromMarketValue`, `ExclusionReason`, `RawSourceJson`.
+
+Purpose: active listing capture for catalog products.
+
+### `CatalogMarketplaceSales`
+
+Fields: `Id`, `CatalogProductId`, `ProductVariantId`, `MarketplaceSourceId`, `SourceName`, `ExternalSaleId`, `ExternalListingId`, `Title`, `SoldPrice`, `ShippingPrice`, `EffectiveSoldPrice`, `Currency`, `Condition`, `RawCondition`, `Quantity`, `SellerName`, `SoldAtUtc`, `CapturedAtUtc`, `SaleUrl`, `ImageUrl`, `MatchConfidence`, `MatchStatus`, `IsExcludedFromMarketValue`, `ExclusionReason`, `RawSourceJson`.
+
+Purpose: sold/completed comparable sales capture.
+
+### `CatalogMarketPriceSnapshots`
+
+Fields: `Id`, `CatalogProductId`, `ProductVariantId`, `MarketplaceSourceId`, `SourceName`, `Condition`, `Currency`, `LowestListingPrice`, `MedianListingPrice`, `AverageListingPrice`, `HighestListingPrice`, `LastSoldPrice`, `MedianSoldPrice`, `AverageSoldPrice`, `LowestSoldPrice`, `HighestSoldPrice`, `ReferenceMarketPrice`, `ReferenceLowPrice`, `ReferenceMidPrice`, `ReferenceHighPrice`, `ListingCount`, `SoldCount`, `SalesVolume`, `CapturedAtUtc`.
+
+Purpose: normalized product/variant/condition market snapshots for charts and summaries.
+
+### `CatalogMarketMetrics`
+
+Fields: `Id`, `CatalogProductId`, `ProductVariantId`, `Condition`, `Currency`, `WindowName`, `WindowStartUtc`, `WindowEndUtc`, `CurrentMarketPrice`, `PreviousMarketPrice`, `PriceChangeAmount`, `PriceChangePercent`, `LowPrice`, `HighPrice`, `ListingCount`, `SoldCount`, `SalesVolume`, `TotalSoldValue`, `AverageSoldValue`, `VolumeScore`, `TrendScore`, `VolatilityScore`, `LiquidityScore`, `SpreadScore`, `DealScore`, `OpportunityScore`, `ConfidenceScore`, `EstimatedFeesPercent`, `EstimatedShippingCost`, `EstimatedGrossMargin`, `EstimatedNetMargin`, `EstimatedRoiPercent`, `ComputedAtUtc`.
+
+Purpose: backend-computed ranking, opportunity, margin, freshness, and confidence signals.
+
+### `CatalogProviderIngestionRuns`
+
+Fields: `Id`, `SourceName`, `WorkloadType`, `StartedUtc`, `FinishedUtc`, `Status`, `RecordsProcessed`, `RecordsCreated`, `RecordsUpdated`, `RecordsSkipped`, `ErrorCount`, `CheckpointBefore`, `CheckpointAfter`, `Notes`.
+
+Purpose: job-level audit trail for aggregation refreshes.
+
+### `CatalogProviderIngestionErrors`
+
+Fields: `Id`, `IngestionRunId`, `SourceName`, `WorkloadType`, `ExternalId`, `CatalogProductId`, `ErrorMessage`, `RawSourceJson`, `CreatedUtc`.
+
+Purpose: provider/run error inspection.
+
+### `CatalogAggregationCheckpoints`
+
+Fields: `Id`, `SourceName`, `WorkloadType`, `CheckpointValue`, `UpdatedUtc`.
+
+Purpose: future resumable aggregation checkpoints.
+
+### `ProductMarketViewEvents`
+
+Fields: `Id`, `CatalogProductId`, `UserId`, `EventType`, `SourceName`, `CreatedUtc`.
+
+Purpose: support recently viewed refreshes and future demand signals.
+
+### `CatalogWatchlistItems`
+
+Fields: `Id`, `UserId`, `CatalogProductId`, `ProductVariantId`, `TargetPrice`, `TargetDiscountPercent`, `AlertOnVolumeSpike`, `AlertOnPriceDrop`, `AlertOnNewDeal`, `AlertOnDataRefresh`, `Notes`, `CreatedUtc`.
+
+Purpose: catalog-product watchlist intelligence separate from the legacy card watchlist.
+
 ## Important Current Limitations
 
-### 1. Catalog-level live listings do not exist yet
+### 1. Catalog-level live listings now exist, but provider depth is still early
 
-There is `Listings`, but it is tied to legacy `Card`.
+`CatalogMarketplaceListings` is implemented and keyed to `CatalogProductId`, optional `ProductVariantId`, source, external listing id, condition, currency, price, shipping, seller, source URL, timestamps, and match confidence.
 
-A full aggregation system needs a catalog-level equivalent, probably keyed by:
+Remaining work:
 
-- `CatalogProductId`
-- optional `ProductVariantId`
-- source/marketplace
-- external listing id
-- condition
-- currency
-- price
-- shipping
-- seller
-- source URL
-- captured timestamp
-- match confidence
+- Turn official provider scaffolds into real credentialed integrations.
+- Add deeper provider-specific SKU mapping.
+- Add robust title parsing per game/category.
+- Add production-grade dedupe, rate limits, retries, and stale-listing expiry.
 
-### 2. Sold/completed transaction data does not exist yet
+### 2. Sold/completed transaction storage exists, but approved sources are still pending
 
-For real market intelligence, current listings are not enough. We need sold comps and completed sales.
+`CatalogMarketplaceSales` is implemented for sold comps, but eBay sold comps remain disabled as `UnsupportedNoApprovedAccess`. Sold data must come from approved APIs, partner feeds, user/internal inventory events, or future licensed datasets.
 
-Potential future table:
+### 3. Analytics/rankings exist as an MVP scaffold
 
-- `CatalogMarketSales`
-- keyed to catalog product/variant/source/external sale id
-- sold price, shipping, sold timestamp, condition, seller, quantity, raw payload
-
-### 3. Analytics/rankings do not exist yet
-
-Current `IsTrending` and `IsFeatured` are product flags.
+Current `IsTrending` and `IsFeatured` are still product flags on the marketplace home page, but market summary, chart, comparison, deal, ranking, confidence, and set dashboard APIs now exist.
 
 Future calculated tables/services should support:
 
@@ -1010,9 +1152,9 @@ Recommended principles:
 - Do ranking/analytics in backend jobs, not in the frontend.
 - Let frontend consume already-shaped APIs for cards, charts, rankings, and market rows.
 
-## Suggested Future Tables
+## Future Table Extensions
 
-These are not currently implemented, but are likely needed.
+The first versions of these tables now exist. The notes below remain useful as future extension ideas for deeper provider coverage, matching precision, and analytics.
 
 ### `CatalogMarketplaces` or reuse/expand `Marketplaces`
 
@@ -1216,4 +1358,3 @@ The eventual aggregation system should feed features that bring users back:
 7. Should product detail pages show source confidence and last updated timestamps from day one?
 8. Should P2W internal inventory be included in market price calculations or displayed separately?
 9. What retention loops are most important first: watchlists, alerts, deal discovery, or seller repricing?
-

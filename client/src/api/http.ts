@@ -15,5 +15,20 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     return undefined as T;
   }
 
-  return response.json() as Promise<T>;
+  const json = await response.json();
+  return normalizeResponse(json) as T;
+}
+
+function normalizeResponse(value: unknown) {
+  if (
+    value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    'value' in value &&
+    Array.isArray((value as { value?: unknown }).value)
+  ) {
+    return (value as { value: unknown[] }).value;
+  }
+
+  return value;
 }

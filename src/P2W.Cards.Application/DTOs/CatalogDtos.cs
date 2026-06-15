@@ -150,6 +150,9 @@ public sealed class SellerInventoryItemDto
     public string? CertificationNumber { get; set; }
     public int Quantity { get; set; }
     public decimal? AskingPrice { get; set; }
+    public decimal? CostBasis { get; set; }
+    public DateTime? AcquiredAtUtc { get; set; }
+    public string? AcquisitionSource { get; set; }
     public string Currency { get; set; } = "USD";
     public bool IsAvailableForSale { get; set; }
     public IReadOnlyList<string> ImageUrls { get; set; } = Array.Empty<string>();
@@ -169,6 +172,9 @@ public sealed class CreateSellerInventoryItemRequest
     public string? CertificationNumber { get; set; }
     public int Quantity { get; set; } = 1;
     public decimal? AskingPrice { get; set; }
+    public decimal? CostBasis { get; set; }
+    public DateTime? AcquiredAtUtc { get; set; }
+    public string? AcquisitionSource { get; set; }
     public string Currency { get; set; } = "USD";
     public bool IsAvailableForSale { get; set; } = true;
     public IReadOnlyList<string> ImageUrls { get; set; } = Array.Empty<string>();

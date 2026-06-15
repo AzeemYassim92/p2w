@@ -27,14 +27,27 @@ public sealed partial class CardsDbContext(DbContextOptions<CardsDbContext> opti
     public DbSet<CatalogImportError> CatalogImportErrors => Set<CatalogImportError>();
     public DbSet<CatalogImportCheckpoint> CatalogImportCheckpoints => Set<CatalogImportCheckpoint>();
     public DbSet<CatalogPriceReferenceSnapshot> CatalogPriceReferenceSnapshots => Set<CatalogPriceReferenceSnapshot>();
+    public DbSet<MarketplaceSource> MarketplaceSources => Set<MarketplaceSource>();
+    public DbSet<ExternalMarketplaceSkuMapping> ExternalMarketplaceSkuMappings => Set<ExternalMarketplaceSkuMapping>();
+    public DbSet<CatalogMarketplaceListing> CatalogMarketplaceListings => Set<CatalogMarketplaceListing>();
+    public DbSet<CatalogMarketplaceSale> CatalogMarketplaceSales => Set<CatalogMarketplaceSale>();
+    public DbSet<CatalogMarketPriceSnapshot> CatalogMarketPriceSnapshots => Set<CatalogMarketPriceSnapshot>();
+    public DbSet<CatalogMarketMetric> CatalogMarketMetrics => Set<CatalogMarketMetric>();
+    public DbSet<CatalogProviderIngestionRun> CatalogProviderIngestionRuns => Set<CatalogProviderIngestionRun>();
+    public DbSet<CatalogProviderIngestionError> CatalogProviderIngestionErrors => Set<CatalogProviderIngestionError>();
+    public DbSet<CatalogAggregationCheckpoint> CatalogAggregationCheckpoints => Set<CatalogAggregationCheckpoint>();
+    public DbSet<ProductMarketViewEvent> ProductMarketViewEvents => Set<ProductMarketViewEvent>();
+    public DbSet<CatalogWatchlistItem> CatalogWatchlistItems => Set<CatalogWatchlistItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureCards(modelBuilder);
         ConfigurePrices(modelBuilder);
         ConfigureCatalog(modelBuilder);
+        ConfigureMarket(modelBuilder);
         Seed(modelBuilder);
         SeedCatalog(modelBuilder);
+        SeedMarket(modelBuilder);
     }
 
     private static void ConfigureCards(ModelBuilder modelBuilder)

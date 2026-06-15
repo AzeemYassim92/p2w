@@ -320,6 +320,7 @@ public sealed class CatalogImportService(CardsDbContext db, IEnumerable<IExterna
         product.CardNumber = externalProduct.CardNumber;
         product.Rarity = externalProduct.Rarity;
         product.Artist = externalProduct.Artist;
+        product.Description = externalProduct.Description ?? product.Description;
         product.ImageUrl = context.IncludeImages ? externalProduct.ImageUrl : product.ImageUrl;
         product.ReleaseDate = externalProduct.ReleaseDate;
         product.IsSingleCard = true;

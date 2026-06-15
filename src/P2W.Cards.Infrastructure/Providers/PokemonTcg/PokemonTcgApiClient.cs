@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,6 +18,54 @@ public sealed class PokemonTcgApiClient(HttpClient http, IOptions<PokemonTcgOpti
     {
         AddApiKey();
         return await GetPagedAsync<PokemonTcgSetDto>("sets", maxRecords, checkpointValue, "-releaseDate", ct);
+    }
+
+    public async Task<PokemonTcgCardDto?> GetCardByIdAsync(string externalId, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(externalId))
+        {
+            return null;
+        }
+
+        AddApiKey();
+        var url = $"{BaseUrl}/cards/{Uri.EscapeDataString(externalId)}";
+        using var httpResponse = await http.GetAsync(url, ct);
+        if (httpResponse.StatusCode == HttpStatusCode.NotFound)
+        {
+            logger.LogInformation("PokemonTCG card id {ExternalId} returned 404. Continuing with search fallback.", externalId);
+            return null;
+        }
+        if (IsTransientFailure(httpResponse.StatusCode))
+        {
+            logger.LogWarning("PokemonTCG card id {ExternalId} returned transient status {StatusCode}. Skipping reference lookup for this attempt.", externalId, (int)httpResponse.StatusCode);
+            return null;
+        }
+
+        httpResponse.EnsureSuccessStatusCode();
+        var response = await httpResponse.Content.ReadFromJsonAsync<PokemonTcgSingleResponse<PokemonTcgCardDto>>(cancellationToken: ct);
+        return response?.Data;
+    }
+
+    public async Task<IReadOnlyList<PokemonTcgCardDto>> SearchCardsAsync(string query, int take, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return Array.Empty<PokemonTcgCardDto>();
+        }
+
+        AddApiKey();
+        var pageSize = Math.Clamp(take, 1, 25);
+        var url = $"{BaseUrl}/cards?q={Uri.EscapeDataString(query)}&page=1&pageSize={pageSize}";
+        using var httpResponse = await http.GetAsync(url, ct);
+        if (IsTransientFailure(httpResponse.StatusCode))
+        {
+            logger.LogWarning("PokemonTCG search returned transient status {StatusCode} for query {Query}. Returning no candidates for this attempt.", (int)httpResponse.StatusCode, query);
+            return Array.Empty<PokemonTcgCardDto>();
+        }
+
+        httpResponse.EnsureSuccessStatusCode();
+        var response = await httpResponse.Content.ReadFromJsonAsync<PokemonTcgListResponse<PokemonTcgCardDto>>(cancellationToken: ct);
+        return response?.Data ?? new List<PokemonTcgCardDto>();
     }
 
     private async Task<PokemonTcgPagedResult<T>> GetPagedAsync<T>(string route, int maxRecords, string? checkpointValue, string orderBy, CancellationToken ct)
@@ -77,6 +126,11 @@ public sealed class PokemonTcgApiClient(HttpClient http, IOptions<PokemonTcgOpti
 
     private static int ParseCheckpoint(string? checkpointValue)
         => int.TryParse(checkpointValue, out var page) && page > 0 ? page : 1;
+
+    private static bool IsTransientFailure(HttpStatusCode statusCode)
+        => statusCode == HttpStatusCode.RequestTimeout
+            || statusCode == HttpStatusCode.TooManyRequests
+            || (int)statusCode >= 500;
 }
 
 public sealed class PokemonTcgPagedResult<T>

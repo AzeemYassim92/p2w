@@ -19,6 +19,7 @@ src/
   P2W.Cards.Application
   P2W.Cards.Domain
   P2W.Cards.Infrastructure
+  P2W.Cards.Worker.Aggregation
 tests/
   P2W.Cards.Tests
 client/
@@ -26,6 +27,19 @@ client/
 ```
 
 Controllers are intentionally thin. Business workflows live behind application interfaces. EF Core, providers, current user handling, and background jobs live in infrastructure.
+
+## Documentation Map
+
+Start with `DOCUMENTATION_INDEX.md` for the full doc map.
+
+- `SYSTEM_DESIGN.md`: architecture, data flow, frontend route map, and near-term technical direction.
+- `MARKETPLACE_AGGREGATION_CONTEXT.md`: marketplace aggregation tables, fields, API surfaces, and provider design context.
+- `PRODUCT_DATA_COMPLETENESS_PLAN.md`: strategy for filling product detail fields before adding more features.
+- `APPLICATION_WIREFRAMES.md`: text wireframes for the current application surfaces.
+- `HANDOFF_NEXT_SESSION.md`: paste-friendly recovery note for the next Codex/session.
+- `CHANGELOG.md`: what changed, where, and when.
+- `CONFIGURATION_AND_SECRETS.md`: local credentials and safe GitHub push practices.
+- `PRODUCT_TODO.md`: living product backlog.
 
 ## Part 2 Catalog Core
 
@@ -55,6 +69,21 @@ Catalog imports are provider-based. Dry runs call a provider, normalize external
 - Catalog pricing has its own snapshot table, but only mock pricing is implemented for now.
 
 Images are stored as URLs only. The app does not download or store image binaries.
+
+## Part 4 Marketplace Aggregation
+
+The catalog-level aggregation slice attaches market data to `CatalogProduct` and `ProductVariant`, not the older MVP `Card` table.
+
+- New market tables store marketplace sources, SKU mappings, active listings, sold comps, market snapshots, computed metrics, ingestion runs/errors/checkpoints, product view events, and catalog watchlist items.
+- eBay active listing support uses the official API path only. It does not scrape.
+- eBay sold comps remain disabled because approved sold/completed data access is not configured.
+- PokemonTCG reference prices are used when the provider payload contains usable price data.
+- JustTCG reference provider configuration has been added as an additional reference-price path.
+- PriceCharting reference provider scaffolding exists.
+- `MockMarket` returns deterministic labeled demo data so charts, rankings, comparison rows, and deal panels can be built before real feeds are enabled.
+- `P2W.Cards.Worker.Aggregation` is a separate disabled-by-default worker. Set `MarketAggregation:Enabled=true` only when scheduled refreshes should run.
+
+Frontend market surfaces now include product market intelligence, market rankings, deal scanner, set dashboard lookup, catalog watchlist intelligence, and provider health.
 
 ## Quick Start
 
@@ -95,6 +124,14 @@ Update `src/P2W.Cards.Api/appsettings.json` if your SQL Server connection differ
 ```json
 "DefaultConnection": "Server=DESKTOP-7PB2QJL\\PRODSQLSERVER;Database=P2WCardsDb;Trusted_Connection=True;TrustServerCertificate=True;"
 ```
+
+Provider credentials should not be stored in tracked files. For local provider keys, copy the example local override and edit the ignored file:
+
+```powershell
+Copy-Item src/P2W.Cards.Api/appsettings.Local.example.json src/P2W.Cards.Api/appsettings.Local.json
+```
+
+See `CONFIGURATION_AND_SECRETS.md` before pushing changes to GitHub.
 
 Create/apply the database:
 
@@ -140,7 +177,7 @@ cd client
 npm run build
 ```
 
-The current suite covers search, game filters, mock providers, listing refresh and de-dupe, condition normalization, price snapshot math, watchlist behavior, alerts, disabled providers, provider registry behavior, catalog discovery, seller inventory, import previews/runs, provider normalization, mapping review, and mock catalog pricing.
+The current suite covers search, game filters, mock providers, listing refresh and de-dupe, condition normalization, price snapshot math, watchlist behavior, alerts, disabled providers, provider registry behavior, catalog discovery, seller inventory, import previews/runs, provider normalization, mapping review, mock catalog pricing, seeded marketplace sources, eBay query/normalization, market summary demo labeling, and mock market aggregation.
 
 ## Example API Calls
 
@@ -165,6 +202,23 @@ PATCH /api/catalog/mappings/{mappingId}/reject
 PATCH /api/catalog/mappings/{mappingId}/notes
 GET /api/catalog/products/{catalogProductId}/pricing/history
 POST /api/catalog/products/{catalogProductId}/pricing/refresh
+POST /api/market/aggregation/products/{catalogProductId}/refresh
+POST /api/market/aggregation/sets/{cardSetId}/refresh
+GET /api/market/aggregation/runs
+GET /api/market/products/{catalogProductId}/summary
+GET /api/market/products/{catalogProductId}/confidence
+GET /api/market/products/{catalogProductId}/comparison
+GET /api/market/products/{catalogProductId}/chart
+GET /api/market/products/{catalogProductId}/deals
+GET /api/market/deals
+GET /api/market/rankings/trending
+GET /api/market/rankings/high-volume
+GET /api/market/rankings/movers
+GET /api/market/rankings/opportunities
+GET /api/market/sets/{cardSetId}/dashboard
+GET /api/catalog-watchlist
+POST /api/catalog-watchlist
+GET /api/market/providers/health
 GET /api/seller-inventory
 POST /api/seller-inventory
 GET /api/cards/search?query=charizard&game=Pokemon
@@ -253,9 +307,10 @@ The EF model seeds:
 
 - No checkout, payment processing, seller onboarding, or order management.
 - No website scraping.
-- Catalog imports are synchronous admin actions for now; background scheduling and live per-card streaming progress are still future work.
+- Catalog imports are synchronous admin actions for now; market aggregation has a separate worker but it is disabled by default.
 - Seller inventory accepts image URLs, but no file upload/storage pipeline exists yet.
 - Real marketplace/catalog providers are placeholders until official credentials/access are configured.
+- Market intelligence panels may show labeled deterministic demo data until real provider feeds are enabled.
 - Alerts are logged and marked as triggered; email/SMS/push is intentionally out of scope.
 - The frontend uses a lightweight in-memory route switch instead of a router package.
 

@@ -114,6 +114,7 @@ public sealed class ExternalCatalogProductDto
     public string? CardNumber { get; set; }
     public string? Rarity { get; set; }
     public string? Artist { get; set; }
+    public string? Description { get; set; }
     public string? ImageUrl { get; set; }
     public string? ExternalUrl { get; set; }
     public IReadOnlyList<string> VariantNames { get; set; } = Array.Empty<string>();

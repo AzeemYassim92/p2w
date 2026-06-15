@@ -638,6 +638,37 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                     b.ToTable("CardVariants");
                 });
 
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogAggregationCheckpoint", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CheckpointValue")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WorkloadType")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceName", "WorkloadType")
+                        .IsUnique();
+
+                    b.ToTable("CatalogAggregationCheckpoints");
+                });
+
             modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogImportCheckpoint", b =>
                 {
                     b.Property<Guid>("Id")
@@ -759,6 +790,526 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("CatalogImportRuns");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogMarketMetric", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("AverageSoldValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("CatalogProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ComputedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal?>("ConfidenceScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal?>("CurrentMarketPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("DealScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EstimatedFeesPercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EstimatedGrossMargin")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EstimatedNetMargin")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EstimatedRoiPercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EstimatedShippingCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("HighPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("LiquidityScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ListingCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("LowPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("OpportunityScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PreviousMarketPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PriceChangeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PriceChangePercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ProductVariantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("SalesVolume")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SoldCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("SpreadScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("TotalSoldValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("TrendScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("VolatilityScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("VolumeScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("WindowEndUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WindowName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("WindowStartUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("ComputedAtUtc");
+
+                    b.HasIndex("Condition");
+
+                    b.HasIndex("Currency");
+
+                    b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("WindowName");
+
+                    b.HasIndex("CatalogProductId", "WindowName", "Condition", "ComputedAtUtc");
+
+                    b.ToTable("CatalogMarketMetrics");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogMarketPriceSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("AverageListingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("AverageSoldPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CapturedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CatalogProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("HighestListingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("HighestSoldPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("LastSoldPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ListingCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("LowestListingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("LowestSoldPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("MarketplaceSourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("MedianListingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MedianSoldPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ProductVariantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("ReferenceHighPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ReferenceLowPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ReferenceMarketPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ReferenceMidPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SalesVolume")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SoldCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CapturedAtUtc");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("Condition");
+
+                    b.HasIndex("MarketplaceSourceId");
+
+                    b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("SourceName");
+
+                    b.HasIndex("CatalogProductId", "SourceName", "Condition", "CapturedAtUtc");
+
+                    b.ToTable("CatalogMarketPriceSnapshots");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogMarketplaceListing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AuctionEndsUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CapturedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CatalogProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("EffectivePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ExclusionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalListingId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ExternalSku")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsAuction")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsExcludedFromMarketValue")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastSeenUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ListedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ListingUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("MarketplaceSourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("MatchConfidence")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MatchStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("Matched");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ProductVariantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RawCondition")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RawSourceJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("SellerFeedbackPercentage")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SellerFeedbackScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SellerLocation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SellerName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("ShippingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CapturedAtUtc");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("IsExcludedFromMarketValue");
+
+                    b.HasIndex("LastSeenUtc");
+
+                    b.HasIndex("MarketplaceSourceId");
+
+                    b.HasIndex("MatchStatus");
+
+                    b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("SourceName");
+
+                    b.HasIndex("MarketplaceSourceId", "ExternalListingId")
+                        .IsUnique();
+
+                    b.HasIndex("CatalogProductId", "SourceName", "IsActive");
+
+                    b.ToTable("CatalogMarketplaceListings");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogMarketplaceSale", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CapturedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CatalogProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("EffectiveSoldPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ExclusionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalListingId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalSaleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ExternalSku")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsExcludedFromMarketValue")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("MarketplaceSourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("MatchConfidence")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MatchStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("Matched");
+
+                    b.Property<Guid?>("ProductVariantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RawCondition")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RawSourceJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SaleUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SellerName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("ShippingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("SoldAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("SoldPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CapturedAtUtc");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("IsExcludedFromMarketValue");
+
+                    b.HasIndex("MarketplaceSourceId");
+
+                    b.HasIndex("MatchStatus");
+
+                    b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("SoldAtUtc");
+
+                    b.HasIndex("SourceName");
+
+                    b.HasIndex("MarketplaceSourceId", "ExternalSaleId")
+                        .IsUnique();
+
+                    b.HasIndex("CatalogProductId", "SourceName", "SoldAtUtc");
+
+                    b.ToTable("CatalogMarketplaceSales");
                 });
 
             modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogPriceReferenceSnapshot", b =>
@@ -1604,6 +2155,171 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogProviderIngestionError", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CatalogProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ErrorMessage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("IngestionRunId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RawSourceJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("WorkloadType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("ExternalId");
+
+                    b.HasIndex("IngestionRunId");
+
+                    b.HasIndex("SourceName");
+
+                    b.HasIndex("WorkloadType");
+
+                    b.ToTable("CatalogProviderIngestionErrors");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogProviderIngestionRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CheckpointAfter")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CheckpointBefore")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ErrorCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FinishedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RecordsCreated")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RecordsProcessed")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RecordsSkipped")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RecordsUpdated")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("StartedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("WorkloadType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceName");
+
+                    b.HasIndex("StartedUtc");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("WorkloadType");
+
+                    b.ToTable("CatalogProviderIngestionRuns");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogWatchlistItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("AlertOnDataRefresh")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AlertOnNewDeal")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AlertOnPriceDrop")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AlertOnVolumeSpike")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("CatalogProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("ProductVariantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("TargetDiscountPercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("TargetPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "CatalogProductId", "ProductVariantId")
+                        .IsUnique()
+                        .HasFilter("[ProductVariantId] IS NOT NULL");
+
+                    b.ToTable("CatalogWatchlistItems");
+                });
+
             modelBuilder.Entity("P2W.Cards.Domain.Entities.ExternalCardMapping", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1641,6 +2357,79 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("ExternalCardMappings");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.ExternalMarketplaceSkuMapping", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CatalogProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExternalCategory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalProductId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalSku")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ExternalTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastVerifiedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MappingNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MappingStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("AutoMatched");
+
+                    b.Property<Guid>("MarketplaceSourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("MatchConfidence")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ProductVariantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("MappingStatus");
+
+                    b.HasIndex("MarketplaceSourceId");
+
+                    b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("SourceName");
+
+                    b.HasIndex("SourceName", "ExternalSku")
+                        .IsUnique();
+
+                    b.ToTable("ExternalMarketplaceSkuMappings");
                 });
 
             modelBuilder.Entity("P2W.Cards.Domain.Entities.ExternalProductMapping", b =>
@@ -2123,6 +2912,192 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.MarketplaceSource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BaseUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DefaultCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PriorityRank")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<bool>("SupportsBulkCsv")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SupportsBuylist")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SupportsListings")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SupportsReferencePrices")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SupportsSoldComps")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("MarketplaceSources");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("56000000-0000-0000-0000-000000000001"),
+                            BaseUrl = "https://www.ebay.com",
+                            CreatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultCurrency = "USD",
+                            IsActive = true,
+                            Name = "eBay",
+                            PriorityRank = 1,
+                            Slug = "ebay",
+                            SupportsBulkCsv = false,
+                            SupportsBuylist = false,
+                            SupportsListings = true,
+                            SupportsReferencePrices = false,
+                            SupportsSoldComps = false,
+                            UpdatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("56000000-0000-0000-0000-000000000002"),
+                            BaseUrl = "https://pokemontcg.io",
+                            CreatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultCurrency = "USD",
+                            IsActive = true,
+                            Name = "PokemonTCG",
+                            PriorityRank = 2,
+                            Slug = "pokemontcg",
+                            SupportsBulkCsv = false,
+                            SupportsBuylist = false,
+                            SupportsListings = false,
+                            SupportsReferencePrices = true,
+                            SupportsSoldComps = false,
+                            UpdatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("56000000-0000-0000-0000-000000000003"),
+                            BaseUrl = "https://www.pricecharting.com",
+                            CreatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultCurrency = "USD",
+                            IsActive = true,
+                            Name = "PriceCharting",
+                            PriorityRank = 3,
+                            Slug = "pricecharting",
+                            SupportsBulkCsv = true,
+                            SupportsBuylist = false,
+                            SupportsListings = false,
+                            SupportsReferencePrices = true,
+                            SupportsSoldComps = false,
+                            UpdatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("56000000-0000-0000-0000-000000000004"),
+                            BaseUrl = "https://www.tcgplayer.com",
+                            CreatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultCurrency = "USD",
+                            IsActive = true,
+                            Name = "TCGplayer",
+                            PriorityRank = 4,
+                            Slug = "tcgplayer",
+                            SupportsBulkCsv = false,
+                            SupportsBuylist = false,
+                            SupportsListings = false,
+                            SupportsReferencePrices = true,
+                            SupportsSoldComps = false,
+                            UpdatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("56000000-0000-0000-0000-000000000005"),
+                            BaseUrl = "https://www.cardmarket.com",
+                            CreatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultCurrency = "USD",
+                            IsActive = true,
+                            Name = "Cardmarket",
+                            PriorityRank = 5,
+                            Slug = "cardmarket",
+                            SupportsBulkCsv = false,
+                            SupportsBuylist = false,
+                            SupportsListings = false,
+                            SupportsReferencePrices = true,
+                            SupportsSoldComps = false,
+                            UpdatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("56000000-0000-0000-0000-000000000006"),
+                            BaseUrl = "",
+                            CreatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultCurrency = "USD",
+                            IsActive = false,
+                            Name = "P2W Internal",
+                            PriorityRank = 6,
+                            Slug = "p2w-internal",
+                            SupportsBulkCsv = false,
+                            SupportsBuylist = false,
+                            SupportsListings = true,
+                            SupportsReferencePrices = false,
+                            SupportsSoldComps = true,
+                            UpdatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("56000000-0000-0000-0000-000000000007"),
+                            BaseUrl = "https://example.com",
+                            CreatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultCurrency = "USD",
+                            IsActive = true,
+                            Name = "MockMarket",
+                            PriorityRank = 99,
+                            Slug = "mockmarket",
+                            SupportsBulkCsv = false,
+                            SupportsBuylist = false,
+                            SupportsListings = true,
+                            SupportsReferencePrices = true,
+                            SupportsSoldComps = true,
+                            UpdatedUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
             modelBuilder.Entity("P2W.Cards.Domain.Entities.PriceAlert", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2588,6 +3563,42 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.ProductMarketViewEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CatalogProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("SourceName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogProductId");
+
+                    b.HasIndex("CreatedUtc");
+
+                    b.HasIndex("EventType");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProductMarketViewEvents");
+                });
+
             modelBuilder.Entity("P2W.Cards.Domain.Entities.ProductVariant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2836,6 +3847,12 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("AcquiredAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AcquisitionSource")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal?>("AskingPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -2848,6 +3865,10 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
 
                     b.Property<int>("Condition")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("CostBasis")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedUtc")
                         .HasColumnType("datetime2");
@@ -2972,6 +3993,96 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                     b.Navigation("CatalogImportRun");
                 });
 
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogMarketMetric", b =>
+                {
+                    b.HasOne("P2W.Cards.Domain.Entities.CatalogProduct", "CatalogProduct")
+                        .WithMany()
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("P2W.Cards.Domain.Entities.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId");
+
+                    b.Navigation("CatalogProduct");
+
+                    b.Navigation("ProductVariant");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogMarketPriceSnapshot", b =>
+                {
+                    b.HasOne("P2W.Cards.Domain.Entities.CatalogProduct", "CatalogProduct")
+                        .WithMany()
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("P2W.Cards.Domain.Entities.MarketplaceSource", "MarketplaceSource")
+                        .WithMany()
+                        .HasForeignKey("MarketplaceSourceId");
+
+                    b.HasOne("P2W.Cards.Domain.Entities.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId");
+
+                    b.Navigation("CatalogProduct");
+
+                    b.Navigation("MarketplaceSource");
+
+                    b.Navigation("ProductVariant");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogMarketplaceListing", b =>
+                {
+                    b.HasOne("P2W.Cards.Domain.Entities.CatalogProduct", "CatalogProduct")
+                        .WithMany()
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("P2W.Cards.Domain.Entities.MarketplaceSource", "MarketplaceSource")
+                        .WithMany()
+                        .HasForeignKey("MarketplaceSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("P2W.Cards.Domain.Entities.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId");
+
+                    b.Navigation("CatalogProduct");
+
+                    b.Navigation("MarketplaceSource");
+
+                    b.Navigation("ProductVariant");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogMarketplaceSale", b =>
+                {
+                    b.HasOne("P2W.Cards.Domain.Entities.CatalogProduct", "CatalogProduct")
+                        .WithMany()
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("P2W.Cards.Domain.Entities.MarketplaceSource", "MarketplaceSource")
+                        .WithMany()
+                        .HasForeignKey("MarketplaceSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("P2W.Cards.Domain.Entities.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId");
+
+                    b.Navigation("CatalogProduct");
+
+                    b.Navigation("MarketplaceSource");
+
+                    b.Navigation("ProductVariant");
+                });
+
             modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogPriceReferenceSnapshot", b =>
                 {
                     b.HasOne("P2W.Cards.Domain.Entities.CatalogProduct", "CatalogProduct")
@@ -3014,6 +4125,34 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                     b.Navigation("ProductCategory");
                 });
 
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogProviderIngestionError", b =>
+                {
+                    b.HasOne("P2W.Cards.Domain.Entities.CatalogProviderIngestionRun", "IngestionRun")
+                        .WithMany("Errors")
+                        .HasForeignKey("IngestionRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IngestionRun");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogWatchlistItem", b =>
+                {
+                    b.HasOne("P2W.Cards.Domain.Entities.CatalogProduct", "CatalogProduct")
+                        .WithMany()
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("P2W.Cards.Domain.Entities.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId");
+
+                    b.Navigation("CatalogProduct");
+
+                    b.Navigation("ProductVariant");
+                });
+
             modelBuilder.Entity("P2W.Cards.Domain.Entities.ExternalCardMapping", b =>
                 {
                     b.HasOne("P2W.Cards.Domain.Entities.Card", "Card")
@@ -3023,6 +4162,31 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Card");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.ExternalMarketplaceSkuMapping", b =>
+                {
+                    b.HasOne("P2W.Cards.Domain.Entities.CatalogProduct", "CatalogProduct")
+                        .WithMany()
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("P2W.Cards.Domain.Entities.MarketplaceSource", "MarketplaceSource")
+                        .WithMany()
+                        .HasForeignKey("MarketplaceSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("P2W.Cards.Domain.Entities.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId");
+
+                    b.Navigation("CatalogProduct");
+
+                    b.Navigation("MarketplaceSource");
+
+                    b.Navigation("ProductVariant");
                 });
 
             modelBuilder.Entity("P2W.Cards.Domain.Entities.ExternalProductMapping", b =>
@@ -3129,6 +4293,17 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
                     b.Navigation("ParentCategory");
                 });
 
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.ProductMarketViewEvent", b =>
+                {
+                    b.HasOne("P2W.Cards.Domain.Entities.CatalogProduct", "CatalogProduct")
+                        .WithMany()
+                        .HasForeignKey("CatalogProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CatalogProduct");
+                });
+
             modelBuilder.Entity("P2W.Cards.Domain.Entities.ProductVariant", b =>
                 {
                     b.HasOne("P2W.Cards.Domain.Entities.CatalogProduct", "CatalogProduct")
@@ -3193,6 +4368,11 @@ namespace P2W.Cards.Infrastructure.Data.Migrations
             modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogProduct", b =>
                 {
                     b.Navigation("Variants");
+                });
+
+            modelBuilder.Entity("P2W.Cards.Domain.Entities.CatalogProviderIngestionRun", b =>
+                {
+                    b.Navigation("Errors");
                 });
 
             modelBuilder.Entity("P2W.Cards.Domain.Entities.SellerInventoryItem", b =>

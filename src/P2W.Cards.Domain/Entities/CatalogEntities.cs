@@ -109,6 +109,9 @@ public sealed class SellerInventoryItem
     public string? CertificationNumber { get; set; }
     public int Quantity { get; set; }
     public decimal? AskingPrice { get; set; }
+    public decimal? CostBasis { get; set; }
+    public DateTime? AcquiredAtUtc { get; set; }
+    public string? AcquisitionSource { get; set; }
     public string Currency { get; set; } = "USD";
     public bool IsAvailableForSale { get; set; }
     public DateTime CreatedUtc { get; set; }

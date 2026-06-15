@@ -91,7 +91,7 @@ public sealed class CatalogService(CardsDbContext db, IOptions<TcgPlayerOptions>
             .OrderByDescending(p => p.IsTrending)
             .ThenByDescending(p => p.IsFeatured)
             .ThenBy(p => p.Name)
-            .Take(Math.Clamp(query.Take, 1, 100))
+            .Take(Math.Clamp(query.Take, 1, 1000))
             .Select(p => ToDto(p))
             .ToListAsync(ct);
 
@@ -440,6 +440,9 @@ public sealed class SellerInventoryService(CardsDbContext db) : ISellerInventory
             CertificationNumber = request.CertificationNumber,
             Quantity = request.Quantity,
             AskingPrice = request.AskingPrice,
+            CostBasis = request.CostBasis,
+            AcquiredAtUtc = request.AcquiredAtUtc,
+            AcquisitionSource = request.AcquisitionSource,
             Currency = string.IsNullOrWhiteSpace(request.Currency) ? "USD" : request.Currency.ToUpperInvariant(),
             IsAvailableForSale = request.IsAvailableForSale,
             CreatedUtc = now,
@@ -510,6 +513,9 @@ public sealed class SellerInventoryService(CardsDbContext db) : ISellerInventory
         CertificationNumber = item.CertificationNumber,
         Quantity = item.Quantity,
         AskingPrice = item.AskingPrice,
+        CostBasis = item.CostBasis,
+        AcquiredAtUtc = item.AcquiredAtUtc,
+        AcquisitionSource = item.AcquisitionSource,
         Currency = item.Currency,
         IsAvailableForSale = item.IsAvailableForSale,
         ImageUrls = item.Images.OrderBy(i => i.DisplayOrder).Select(i => i.ImageUrl).ToArray(),
