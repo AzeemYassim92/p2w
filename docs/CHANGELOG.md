@@ -17,6 +17,11 @@ Dates use local project time.
 - Added PokemonTCG reference price provider behavior and improved handling of missing/empty provider price payloads.
 - Added refresh throttling/skipping logic so set refreshes do not repeatedly scan fresh rows unless forced.
 - Added continuation behavior so one failed product does not stop an entire set refresh.
+- Added temporary local session logging to `logs/session.log`, recreated on API launch.
+- Added frontend/API connection logging, API request timing logs, provider call breadcrumbs, import breadcrumbs, and eBay listing normalization counts.
+- Added catalog maintenance endpoints for Pokemon completeness reporting and dry-run metadata backfill.
+- Capped market confidence when no sold comps are present so active listings alone cannot produce a high-confidence signal.
+- Reduced deal/liquidity scoring inflation from active listings without sold comps.
 
 ### Frontend
 
@@ -33,11 +38,18 @@ Dates use local project time.
 ### Catalog and Product Data
 
 - Imported Pokemon catalog data through PokemonTCG checkpoints.
+- Added terminal catalog sync and validation commands for Pokemon and One Piece.
+- Added an official One Piece catalog import provider that reads Bandai card list set pages and canonicalizes alternate-art rows into one marketplace product per set/card/name.
+- Added catalog validation output comparing provider/official set and card counts against local database counts.
+- Changed catalog validation to compare provider cards against local single-card products, excluding sealed marketplace products from card totals.
+- Updated catalog import set upserts so existing seeded sets can be refreshed with provider codes, release dates, and images.
 - Validated `Phantasmal Flames` set count and sample product data for Dawn `#118`.
 - Added `PRODUCT_DATA_COMPLETENESS_PLAN.md`.
+- Added `CATALOG_SYNC_RUNBOOK.md`.
 - Added future-import support for Pokemon rules text into `CatalogProduct.Description`.
 - Changed future Pokemon variant generation to prefer TCGplayer price keys before generic inferred variants.
 - Identified the need to backfill existing Pokemon rows for richer metadata and corrected variants.
+- Added a Pokemon metadata backfill path that enriches existing mapped rows from PokemonTCG and adds missing variants without deleting existing data.
 
 ### Documentation
 

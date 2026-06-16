@@ -55,6 +55,11 @@ public sealed class PokemonTcgOptions : ProviderSwitchOptions
     public string ApiKey { get; set; } = "";
 }
 
+public sealed class OnePieceOfficialOptions : ProviderSwitchOptions
+{
+    public int RequestDelayMilliseconds { get; set; } = 250;
+}
+
 public sealed class PriceChartingOptions : ProviderSwitchOptions
 {
     public string ApiToken { get; set; } = "";

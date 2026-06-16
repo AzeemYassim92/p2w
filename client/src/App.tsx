@@ -1,5 +1,6 @@
-import { type FormEvent, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { checkApiHealth, logClientEvent } from './api/http';
 import { AlertsPage } from './pages/AlertsPage';
 import { CardDetailPage } from './pages/CardDetailPage';
 import { CatalogWatchlistIntelligencePage } from './pages/CatalogWatchlistIntelligencePage';
@@ -38,6 +39,17 @@ export function App() {
   const [country, setCountry] = useState('US');
   const [loggedIn, setLoggedIn] = useState(false);
   const [searchText, setSearchText] = useState('');
+  useEffect(() => {
+    logClientEvent('frontend.app.started', 'React application mounted.', { route: 'marketplace' });
+    const started = performance.now();
+    checkApiHealth()
+      .then(() => logClientEvent('frontend.backend.connected', 'Frontend connected to API health endpoint.', { elapsedMs: Math.round(performance.now() - started) }))
+      .catch((error) => logClientEvent('frontend.backend.failed', 'Frontend could not reach API health endpoint.', {
+        elapsedMs: Math.round(performance.now() - started),
+        error: error instanceof Error ? error.message : String(error)
+      }, 'Error'));
+  }, []);
+
   const content = useMemo(() => {
     if (route.name === 'marketplace') return <MarketplaceHomePage onOpenProduct={(productId) => setRoute({ name: 'product', productId })} />;
     if (route.name === 'detail') return <CardDetailPage cardId={route.cardId} />;

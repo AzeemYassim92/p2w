@@ -16,7 +16,7 @@ The aggregation slice now has enough real-provider plumbing to start validating 
 - PokemonTCG can provide reference prices when the card payload has a usable `tcgplayer.prices` object.
 - JustTCG provider configuration has been added as another reference-price path.
 - Product pricing pages now separate marketplace intelligence from the general product detail page.
-- Market rankings and set dashboards now support set-level analytics, buy signals, activity leaders, low-confidence rows, and full set catalog rows.
+- Market rankings and set dashboards now support set-level analytics, buy signals, activity leaders, low-confidence rows, and full set catalog rows.**
 - Set dashboard DTOs now return all product rows so the UI is not forced to infer table state from only top-ranked subsets.
 - Product data completeness is now a first-class gating concern. See `PRODUCT_DATA_COMPLETENESS_PLAN.md`.
 

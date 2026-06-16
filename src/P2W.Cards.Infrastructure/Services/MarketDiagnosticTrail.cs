@@ -6,7 +6,10 @@ using P2W.Cards.Application.Options;
 
 namespace P2W.Cards.Infrastructure.Services;
 
-public sealed class MarketDiagnosticTrail(IOptions<MarketDiagnosticsOptions> options, ILogger<MarketDiagnosticTrail> logger)
+public sealed class MarketDiagnosticTrail(
+    IOptions<MarketDiagnosticsOptions> options,
+    ILogger<MarketDiagnosticTrail> logger,
+    LocalSessionLog? sessionLog = null)
 {
     private readonly List<MarketDiagnosticEventDto> events = new();
 
@@ -26,6 +29,7 @@ public sealed class MarketDiagnosticTrail(IOptions<MarketDiagnosticsOptions> opt
     {
         var dataJson = data == null ? null : JsonSerializer.Serialize(data);
         logger.Log(level, exception, "{MarketStage}: {MarketMessage} {MarketData}", stage, message, dataJson);
+        sessionLog?.Write(level.ToString(), "market", stage, message, data, exception);
 
         if (!Enabled || events.Count >= Math.Clamp(options.Value.MaxEventsPerRun, 1, 500))
         {

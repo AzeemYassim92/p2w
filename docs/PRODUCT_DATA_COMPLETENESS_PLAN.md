@@ -38,8 +38,13 @@ Important caveats:
 - [x] Use the full dashboard product list on the frontend before falling back to merged top-ranked rows.
 - [x] Populate future Pokemon imports with rules text in `CatalogProduct.Description` when provider rules are present.
 - [x] Build future Pokemon variants from TCGplayer price keys before falling back to generic inferred variants.
+- [x] Add a local session log at `logs/session.log` for frontend/API/provider/import/refresh diagnostics.
+- [x] Add backend endpoints to report catalog completeness and dry-run Pokemon metadata backfills.
+- [x] Cap market confidence when only active listings/reference prices exist and sold comps are missing.
+- [x] Add terminal catalog sync and validation jobs for Pokemon and One Piece.
 - [ ] Restart the API/frontend and confirm the set catalog no longer shows false `Pending` rows for products that already have market rows.
-- [ ] Reimport or backfill existing Pokemon rows so descriptions and corrected variants are written to the database.
+- [ ] Run `sync-pokemon-catalog` and `sync-onepiece-catalog`, then validate both catalogs from the terminal.
+- [ ] Run the Pokemon metadata backfill in dry-run mode, review changed rows, then run it with `dryRun: false`.
 - [ ] Add a visible freshness/coverage row to each set screen: products in set, products refreshed, products with reference price, products with active listings, products with sold comps.
 
 ## Product Detail Field Targets
@@ -115,6 +120,31 @@ Recommended new concepts:
 - `CatalogProductProviderCoverage`: latest status per product/provider/source type.
 
 ## Backfill Strategy
+
+Current API helpers:
+
+- `GET /api/catalog/maintenance/completeness?gameSlug=pokemon`
+- `POST /api/catalog/maintenance/pokemon/backfill`
+
+Terminal catalog helpers:
+
+```powershell
+dotnet run --project src/P2W.Cards.Worker.Aggregation -- sync-pokemon-catalog --batch-size 5000
+dotnet run --project src/P2W.Cards.Worker.Aggregation -- sync-onepiece-catalog --batch-size 5000
+dotnet run --project src/P2W.Cards.Worker.Aggregation -- validate-catalog pokemon
+dotnet run --project src/P2W.Cards.Worker.Aggregation -- validate-catalog one-piece
+```
+
+Default backfill behavior is dry-run:
+
+```json
+{
+  "gameSlug": "pokemon",
+  "take": 50,
+  "missingOnly": true,
+  "dryRun": true
+}
+```
 
 1. Parse existing `RawSourceJson` first so we can fill many fields without calling APIs.
 2. Extend provider DTOs and normalizers to expose rich fields.

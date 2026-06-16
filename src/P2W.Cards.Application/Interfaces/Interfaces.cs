@@ -126,6 +126,12 @@ public interface IImportCheckpointService
     Task SaveCheckpointAsync(string sourceName, string importType, string checkpointValue, CancellationToken ct);
 }
 
+public interface ICatalogMaintenanceService
+{
+    Task<CatalogCompletenessDto> GetCompletenessAsync(string gameSlug, CancellationToken ct);
+    Task<CatalogMetadataBackfillResultDto> BackfillMetadataAsync(CatalogMetadataBackfillRequest request, CancellationToken ct);
+}
+
 public interface IMappingReviewService
 {
     Task<IReadOnlyList<MappingReviewDto>> GetMappingsForReviewAsync(string? status, int take, CancellationToken ct);

@@ -36,6 +36,7 @@ client/.env.*
 !client/.env.example
 appsettings.Development.local.json
 appsettings.Local.json
+*.local.md
 
 # Logs
 *.log

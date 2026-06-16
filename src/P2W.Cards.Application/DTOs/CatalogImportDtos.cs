@@ -149,6 +149,53 @@ public sealed class CatalogImportCheckpointDto
     public DateTime UpdatedUtc { get; set; }
 }
 
+public sealed class CatalogMetadataBackfillRequest
+{
+    public string GameSlug { get; set; } = "pokemon";
+    public Guid? CardSetId { get; set; }
+    public int Take { get; set; } = 50;
+    public bool MissingOnly { get; set; } = true;
+    public bool DryRun { get; set; } = true;
+}
+
+public sealed class CatalogMetadataBackfillResultDto
+{
+    public string GameSlug { get; set; } = "";
+    public int ProductsScanned { get; set; }
+    public int ProductsUpdated { get; set; }
+    public int ProductsSkipped { get; set; }
+    public int MissingMappings { get; set; }
+    public int ProviderMisses { get; set; }
+    public int Errors { get; set; }
+    public IReadOnlyList<string> Notes { get; set; } = Array.Empty<string>();
+}
+
+public sealed class CatalogCompletenessDto
+{
+    public string GameSlug { get; set; } = "";
+    public int SetCount { get; set; }
+    public int ProductCount { get; set; }
+    public int ProductsMissingImage { get; set; }
+    public int ProductsMissingDescription { get; set; }
+    public int ProductsMissingRarity { get; set; }
+    public int ProductsMissingCardNumber { get; set; }
+    public int ProductsWithoutExternalMapping { get; set; }
+    public int SetsWithoutProducts { get; set; }
+    public IReadOnlyList<CatalogSetCompletenessRowDto> RecentSets { get; set; } = Array.Empty<CatalogSetCompletenessRowDto>();
+}
+
+public sealed class CatalogSetCompletenessRowDto
+{
+    public Guid CardSetId { get; set; }
+    public string SetName { get; set; } = "";
+    public string? SetCode { get; set; }
+    public DateTime? ReleaseDate { get; set; }
+    public int ProductCount { get; set; }
+    public int ProductsMissingImage { get; set; }
+    public int ProductsMissingDescription { get; set; }
+    public int ProductsWithoutExternalMapping { get; set; }
+}
+
 public sealed class MappingReviewDto
 {
     public Guid MappingId { get; set; }

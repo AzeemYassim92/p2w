@@ -12,6 +12,7 @@ using P2W.Cards.Infrastructure.Data;
 using P2W.Cards.Infrastructure.Providers.Common;
 using P2W.Cards.Infrastructure.Providers.Ebay;
 using P2W.Cards.Infrastructure.Providers.JustTcg;
+using P2W.Cards.Infrastructure.Providers.OnePiece;
 using P2W.Cards.Infrastructure.Providers.PokemonTcg;
 using P2W.Cards.Infrastructure.Providers.PriceCharting;
 using P2W.Cards.Infrastructure.Providers.Scryfall;
@@ -32,6 +33,7 @@ public static class DependencyInjection
         services.Configure<TcgPlayerOptions>(configuration.GetSection("Providers:TcgPlayer"));
         services.Configure<EbayOptions>(configuration.GetSection("Providers:Ebay"));
         services.Configure<JustTcgOptions>(configuration.GetSection("Providers:JustTcg"));
+        services.Configure<OnePieceOfficialOptions>(configuration.GetSection("Providers:OnePieceOfficial"));
         services.Configure<ScryfallOptions>(configuration.GetSection("Providers:Scryfall"));
         services.Configure<MtgJsonOptions>(configuration.GetSection("Providers:MtgJson"));
         services.Configure<PokemonTcgOptions>(configuration.GetSection("Providers:PokemonTcg"));
@@ -45,6 +47,7 @@ public static class DependencyInjection
         services.AddHttpClient<ScryfallApiClient>();
         services.AddHttpClient<PokemonTcgApiClient>();
         services.AddHttpClient<JustTcgApiClient>();
+        services.AddHttpClient<OnePieceOfficialCatalogImportProvider>();
         services.AddHttpClient<EbayBrowseApiClient>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<ConditionNormalizer>();
@@ -60,10 +63,12 @@ public static class DependencyInjection
         services.AddScoped<ICatalogDiscoveryService, CatalogDiscoveryService>();
         services.AddScoped<ISellerInventoryService, SellerInventoryService>();
         services.AddScoped<ICatalogImportService, CatalogImportService>();
+        services.AddScoped<ICatalogMaintenanceService, CatalogMaintenanceService>();
         services.AddScoped<ICatalogProductMatchingService, CatalogProductMatchingService>();
         services.AddScoped<IImportCheckpointService, ImportCheckpointService>();
         services.AddScoped<IMappingReviewService, MappingReviewService>();
         services.AddScoped<ICatalogPricingService, CatalogPricingService>();
+        services.AddSingleton<LocalSessionLog>();
         services.AddScoped<MarketDiagnosticTrail>();
         services.AddScoped<IMarketAggregationService, MarketAggregationService>();
         services.AddScoped<IMarketSummaryService, MarketSummaryService>();
@@ -78,6 +83,7 @@ public static class DependencyInjection
         services.AddScoped<IExternalPricingProvider, MockCatalogPricingProvider>();
         services.AddScoped<IExternalCatalogProvider, ScryfallCatalogImportProvider>();
         services.AddScoped<IExternalCatalogProvider, PokemonTcgCatalogImportProvider>();
+        services.AddScoped<IExternalCatalogProvider>(sp => sp.GetRequiredService<OnePieceOfficialCatalogImportProvider>());
         services.AddScoped<IMarketplaceReferencePriceProvider, MockMarketDataProvider>();
         services.AddScoped<IMarketplaceActiveListingProvider, MockMarketDataProvider>();
         services.AddScoped<IMarketplaceSoldCompsProvider, MockMarketDataProvider>();

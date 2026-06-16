@@ -58,6 +58,8 @@ public sealed class PokemonTcgSetDto
     public string? Series { get; set; }
     [JsonPropertyName("printedTotal")]
     public int? PrintedTotal { get; set; }
+    [JsonPropertyName("total")]
+    public int? Total { get; set; }
     [JsonPropertyName("releaseDate")]
     public string? ReleaseDate { get; set; }
     [JsonPropertyName("images")]

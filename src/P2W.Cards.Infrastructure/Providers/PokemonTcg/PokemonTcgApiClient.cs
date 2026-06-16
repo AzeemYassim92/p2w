@@ -105,8 +105,16 @@ public sealed class PokemonTcgApiClient(HttpClient http, IOptions<PokemonTcgOpti
         {
             Data = records.Take(maxRecords).ToArray(),
             NextCheckpointValue = hasMore ? nextPage.ToString() : null,
-            HasMore = hasMore
+            HasMore = hasMore,
+            TotalCount = records.Count == 0 ? 0 : records.Count < maxRecords ? records.Count : await ReadTotalCountAsync(route, orderBy, ct)
         };
+    }
+
+    private async Task<int> ReadTotalCountAsync(string route, string orderBy, CancellationToken ct)
+    {
+        var url = $"{BaseUrl}/{route}?page=1&pageSize=1&orderBy={Uri.EscapeDataString(orderBy)}";
+        var response = await http.GetFromJsonAsync<PokemonTcgListResponse<object>>(url, ct);
+        return response?.TotalCount ?? 0;
     }
 
     private void AddApiKey()
@@ -138,4 +146,5 @@ public sealed class PokemonTcgPagedResult<T>
     public IReadOnlyList<T> Data { get; set; } = Array.Empty<T>();
     public string? NextCheckpointValue { get; set; }
     public bool HasMore { get; set; }
+    public int TotalCount { get; set; }
 }

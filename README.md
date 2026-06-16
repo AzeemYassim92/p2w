@@ -30,16 +30,18 @@ Controllers are intentionally thin. Business workflows live behind application i
 
 ## Documentation Map
 
-Start with `DOCUMENTATION_INDEX.md` for the full doc map.
+Start with `docs/DOCUMENTATION_INDEX.md` for the full doc map.
 
-- `SYSTEM_DESIGN.md`: architecture, data flow, frontend route map, and near-term technical direction.
-- `MARKETPLACE_AGGREGATION_CONTEXT.md`: marketplace aggregation tables, fields, API surfaces, and provider design context.
-- `PRODUCT_DATA_COMPLETENESS_PLAN.md`: strategy for filling product detail fields before adding more features.
-- `APPLICATION_WIREFRAMES.md`: text wireframes for the current application surfaces.
-- `HANDOFF_NEXT_SESSION.md`: paste-friendly recovery note for the next Codex/session.
-- `CHANGELOG.md`: what changed, where, and when.
-- `CONFIGURATION_AND_SECRETS.md`: local credentials and safe GitHub push practices.
-- `PRODUCT_TODO.md`: living product backlog.
+- `docs/SYSTEM_DESIGN.md`: architecture, data flow, frontend route map, and near-term technical direction.
+- `docs/MARKETPLACE_AGGREGATION_CONTEXT.md`: marketplace aggregation tables, fields, API surfaces, and provider design context.
+- `docs/PRODUCT_DATA_COMPLETENESS_PLAN.md`: strategy for filling product detail fields before adding more features.
+- `docs/CATALOG_SYNC_RUNBOOK.md`: terminal commands for Pokemon and One Piece catalog sync/validation jobs.
+- `docs/sql/README_SQL_RUNBOOK.md`: SSMS query runbook for catalog, import, and market aggregation data exploration.
+- `docs/APPLICATION_WIREFRAMES.md`: text wireframes for the current application surfaces.
+- `docs/HANDOFF_NEXT_SESSION.md`: paste-friendly recovery note for the next Codex/session.
+- `docs/CHANGELOG.md`: what changed, where, and when.
+- `docs/CONFIGURATION_AND_SECRETS.md`: local credentials and safe GitHub push practices.
+- `docs/PRODUCT_TODO.md`: living product backlog.
 
 ## Part 2 Catalog Core
 
@@ -61,6 +63,7 @@ Catalog imports are provider-based. Dry runs call a provider, normalize external
 
 - Scryfall is the first Magic metadata provider and uses official Scryfall API endpoints.
 - PokemonTCG is the first Pokemon metadata provider and uses the official Pokemon TCG API.
+- One Piece official card list import is available for base set/card identity and images.
 - Real imports create `CatalogImportRun` records, upsert sets/products/variants, create external mappings, and write record-level `CatalogImportError` rows.
 - Imports page through provider APIs and save resume checkpoints so later runs continue from the next page instead of replaying page one.
 - PokemonTCG uses numeric API pages. Scryfall uses its returned `next_page` URL.
@@ -69,6 +72,19 @@ Catalog imports are provider-based. Dry runs call a provider, normalize external
 - Catalog pricing has its own snapshot table, but only mock pricing is implemented for now.
 
 Images are stored as URLs only. The app does not download or store image binaries.
+
+## Catalog Sync Jobs
+
+Populate and validate base catalogs from the terminal without launching the frontend:
+
+```powershell
+dotnet run --project src/P2W.Cards.Worker.Aggregation -- sync-pokemon-catalog --batch-size 5000
+dotnet run --project src/P2W.Cards.Worker.Aggregation -- sync-onepiece-catalog --batch-size 5000
+dotnet run --project src/P2W.Cards.Worker.Aggregation -- validate-catalog pokemon
+dotnet run --project src/P2W.Cards.Worker.Aggregation -- validate-catalog one-piece
+```
+
+Use `--resume` with `catalog-sync pokemon` or `catalog-sync one-piece` after an interrupted run. See `docs/CATALOG_SYNC_RUNBOOK.md` for completion criteria and expected count deltas.
 
 ## Part 4 Marketplace Aggregation
 
@@ -131,7 +147,7 @@ Provider credentials should not be stored in tracked files. For local provider k
 Copy-Item src/P2W.Cards.Api/appsettings.Local.example.json src/P2W.Cards.Api/appsettings.Local.json
 ```
 
-See `CONFIGURATION_AND_SECRETS.md` before pushing changes to GitHub.
+See `docs/CONFIGURATION_AND_SECRETS.md` before pushing changes to GitHub.
 
 Create/apply the database:
 

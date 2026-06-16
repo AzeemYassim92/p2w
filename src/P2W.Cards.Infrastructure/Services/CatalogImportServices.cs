@@ -29,7 +29,14 @@ public static class CatalogTextNormalizer
     public static string Slug(string value) => NormalizeName(value).Replace(" ", "-");
 }
 
-public sealed class CatalogImportService(CardsDbContext db, IEnumerable<IExternalCatalogProvider> providers, ICatalogProductMatchingService matching, IImportCheckpointService checkpoints, IOptions<CatalogImportOptions> options, ILogger<CatalogImportService> logger) : ICatalogImportService
+public sealed class CatalogImportService(
+    CardsDbContext db,
+    IEnumerable<IExternalCatalogProvider> providers,
+    ICatalogProductMatchingService matching,
+    IImportCheckpointService checkpoints,
+    IOptions<CatalogImportOptions> options,
+    ILogger<CatalogImportService> logger,
+    LocalSessionLog? sessionLog = null) : ICatalogImportService
 {
     public async Task<CatalogImportPreviewDto> PreviewImportAsync(StartCatalogImportRequest request, CancellationToken ct)
     {
@@ -69,6 +76,16 @@ public sealed class CatalogImportService(CardsDbContext db, IEnumerable<IExterna
 
         var provider = GetProvider(request.SourceName);
         var context = await ToContextAsync(request, ct);
+        sessionLog?.Info("catalog", "catalog.import.start", "Catalog import started.", new
+        {
+            context.SourceName,
+            context.GameSlug,
+            context.ImportType,
+            context.MaxRecords,
+            context.CheckpointValue,
+            context.UseCheckpoint,
+            context.SaveCheckpoint
+        });
         var run = new CatalogImportRun
         {
             Id = Guid.NewGuid(),
@@ -119,6 +136,19 @@ public sealed class CatalogImportService(CardsDbContext db, IEnumerable<IExterna
             {
                 await checkpoints.SaveCheckpointAsync(provider.SourceName, context.ImportType, result.NextCheckpointValue ?? "complete", ct);
             }
+            sessionLog?.Info("catalog", "catalog.import.complete", "Catalog import completed.", new
+            {
+                run.SourceName,
+                run.ImportType,
+                run.RecordsProcessed,
+                run.RecordsCreated,
+                run.RecordsUpdated,
+                run.RecordsSkipped,
+                run.ErrorCount,
+                run.Status,
+                result.NextCheckpointValue,
+                result.HasMore
+            });
             var dto = ToDto(run);
             dto.CheckpointValue = context.CheckpointValue;
             dto.NextCheckpointValue = result.NextCheckpointValue;
@@ -131,6 +161,13 @@ public sealed class CatalogImportService(CardsDbContext db, IEnumerable<IExterna
             run.FinishedUtc = DateTime.UtcNow;
             run.Notes = ex.Message;
             await db.SaveChangesAsync(ct);
+            sessionLog?.Error("catalog", "catalog.import.failed", "Catalog import failed.", ex, new
+            {
+                context.SourceName,
+                context.GameSlug,
+                context.ImportType,
+                context.CheckpointValue
+            });
             throw;
         }
     }
@@ -280,7 +317,10 @@ public sealed class CatalogImportService(CardsDbContext db, IEnumerable<IExterna
                     CreatedUtc = DateTime.UtcNow,
                     UpdatedUtc = DateTime.UtcNow
                 });
+                continue;
             }
+
+            await RefreshSetIdentityAsync(existing, set, game.Id, ct);
         }
         await db.SaveChangesAsync(ct);
     }
@@ -347,7 +387,18 @@ public sealed class CatalogImportService(CardsDbContext db, IEnumerable<IExterna
         var setName = string.IsNullOrWhiteSpace(externalProduct.SetName) ? "Unknown Set" : externalProduct.SetName;
         var normalized = CatalogTextNormalizer.NormalizeName(setName);
         var set = await db.CardSets.FirstOrDefaultAsync(s => s.GameId == gameId && s.NormalizedName == normalized, ct);
-        if (set != null) return set;
+        if (set != null)
+        {
+            await RefreshSetIdentityAsync(set, new ExternalCatalogSetDto
+            {
+                Name = setName,
+                GameSlug = externalProduct.GameSlug,
+                Code = externalProduct.SetCode,
+                ReleaseDate = externalProduct.ReleaseDate
+            }, gameId, ct);
+            await db.SaveChangesAsync(ct);
+            return set;
+        }
 
         set = new CardSet
         {
@@ -366,6 +417,64 @@ public sealed class CatalogImportService(CardsDbContext db, IEnumerable<IExterna
         db.CardSets.Add(set);
         await db.SaveChangesAsync(ct);
         return set;
+    }
+
+    private async Task RefreshSetIdentityAsync(CardSet existing, ExternalCatalogSetDto externalSet, Guid gameId, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        var changed = false;
+
+        if (!string.IsNullOrWhiteSpace(externalSet.Code) && !externalSet.Code.Equals(existing.Code, StringComparison.OrdinalIgnoreCase))
+        {
+            var codeInUse = await db.CardSets.AnyAsync(s => s.GameId == gameId && s.Id != existing.Id && s.Code == externalSet.Code, ct);
+            if (!codeInUse)
+            {
+                existing.Code = externalSet.Code;
+                changed = true;
+            }
+            else
+            {
+                logger.LogWarning("Skipped updating set {SetName} to provider code {ProviderCode} because another set already uses that code.", existing.Name, externalSet.Code);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(externalSet.Name) && externalSet.Name != existing.Name)
+        {
+            existing.Name = externalSet.Name;
+            existing.NormalizedName = CatalogTextNormalizer.NormalizeName(externalSet.Name);
+            existing.Slug = CatalogTextNormalizer.Slug(externalSet.Name);
+            changed = true;
+        }
+
+        if (externalSet.ReleaseDate.HasValue && existing.ReleaseDate != externalSet.ReleaseDate)
+        {
+            existing.ReleaseDate = externalSet.ReleaseDate;
+            existing.IsUpcoming = externalSet.ReleaseDate > now;
+            changed = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(externalSet.LogoUrl) && externalSet.LogoUrl != existing.LogoUrl)
+        {
+            existing.LogoUrl = externalSet.LogoUrl;
+            changed = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(externalSet.SymbolUrl) && externalSet.SymbolUrl != existing.SymbolUrl)
+        {
+            existing.SymbolUrl = externalSet.SymbolUrl;
+            changed = true;
+        }
+
+        if (!existing.IsActive)
+        {
+            existing.IsActive = true;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            existing.UpdatedUtc = now;
+        }
     }
 
     private async Task UpsertVariantsAsync(Guid productId, IReadOnlyList<string> variantNames, CancellationToken ct)

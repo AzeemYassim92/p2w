@@ -735,9 +735,22 @@ public sealed class MarketMetricsService(CardsDbContext db, IOptions<MarketFeesO
         if (snapshot.ListingCount >= 20) score += 45;
         else if (snapshot.ListingCount >= 5) score += 30;
         else if (snapshot.ListingCount > 0) score += 15;
-        if (snapshot.SoldCount > 0) score += 20;
+        if (snapshot.SoldCount >= 20) score += 30;
+        else if (snapshot.SoldCount >= 5) score += 24;
+        else if (snapshot.SoldCount > 0) score += 16;
         if (snapshot.ReferenceMarketPrice.HasValue) score += 25;
         score += 10;
+
+        if (snapshot.SoldCount == 0)
+        {
+            var cap = snapshot.ListingCount > 0 && snapshot.ReferenceMarketPrice.HasValue
+                ? 55m
+                : snapshot.ListingCount > 0
+                    ? 45m
+                    : 40m;
+            score = Math.Min(score, cap);
+        }
+
         return Math.Clamp(score, 0, 100);
     }
 }
@@ -795,12 +808,8 @@ public sealed class MarketSummaryService(CardsDbContext db) : IMarketSummaryServ
             IncludedComparableCount = includedCount,
             ExcludedComparableCount = excludedCount,
             HasMarketData = current.HasValue,
-            DataStatus = current.HasValue && includedCount > referenceCount ? "Ready" : current.HasValue ? "Reference only" : "Needs refresh",
-            DataQualityMessage = current.HasValue && includedCount > referenceCount
-                ? "Computed from non-mock listings, sold comps, and reference prices captured for this product."
-                : current.HasValue
-                    ? "A real provider reference price was captured. Add active listings or sold comps before treating it as a strong market signal."
-                : "Provider rows exist, but no usable market price was computed yet.",
+            DataStatus = DataStatus(current, snapshot, referenceCount, includedCount),
+            DataQualityMessage = DataQualityMessage(current, snapshot, referenceCount, includedCount),
             IsDemoData = false
         };
     }
@@ -845,6 +854,39 @@ public sealed class MarketSummaryService(CardsDbContext db) : IMarketSummaryServ
     internal static decimal ScoreReferenceOnlyConfidence(int referenceSourceCount)
         => referenceSourceCount switch { >= 3 => 50, 2 => 42, 1 => 35, _ => 0 };
 
+    private static string DataStatus(decimal? current, CatalogMarketPriceSnapshot? snapshot, int referenceCount, int includedCount)
+    {
+        if (!current.HasValue) return "Needs refresh";
+        if (snapshot?.SoldCount > 0) return "Ready";
+        if (snapshot?.ListingCount > 0) return "Listing signal";
+        return includedCount > referenceCount ? "Needs review" : "Reference only";
+    }
+
+    private static string DataQualityMessage(decimal? current, CatalogMarketPriceSnapshot? snapshot, int referenceCount, int includedCount)
+    {
+        if (!current.HasValue)
+        {
+            return "Provider rows exist, but no usable market price was computed yet.";
+        }
+
+        if (snapshot?.SoldCount > 0)
+        {
+            return "Computed from non-mock sold comps, active listings, and reference prices captured for this product.";
+        }
+
+        if (snapshot?.ListingCount > 0)
+        {
+            return "Computed from active listings and reference prices. Sold comps are missing, so confidence is capped until real sale evidence is captured.";
+        }
+
+        if (referenceCount > 0 || includedCount > 0)
+        {
+            return "A real provider reference price was captured. Add active listings and sold comps before treating it as a strong market signal.";
+        }
+
+        return "No real marketplace/reference rows have been captured for this product yet.";
+    }
+
     internal static string FreshnessLabel(DateTime? lastUpdatedUtc)
     {
         if (!lastUpdatedUtc.HasValue) return "Cold";
@@ -875,10 +917,28 @@ public sealed class MarketConfidenceService(CardsDbContext db) : IMarketConfiden
             ReferenceSourceCount = referenceSources,
             SoldCompCount = soldComps,
             LastUpdatedUtc = snapshot?.CapturedAtUtc ?? lastReferenceUpdate,
-            Notes = snapshot == null
-                ? "Reference-only signal. Add active listings and sold comps to raise confidence."
-                : "Computed from non-mock listings, reference prices, sold comps, and freshness."
+            Notes = BuildConfidenceNotes(snapshot, referenceSources, activeListings, soldComps)
         };
+    }
+
+    private static string BuildConfidenceNotes(CatalogMarketPriceSnapshot? snapshot, int referenceSources, int activeListings, int soldComps)
+    {
+        if (soldComps > 0)
+        {
+            return "Computed from sold comps, active listings, reference prices, and freshness.";
+        }
+
+        if (activeListings > 0)
+        {
+            return "Active-listing signal only. Sold comps are missing, so confidence is capped until real sales data is available.";
+        }
+
+        if (referenceSources > 0 || snapshot?.ReferenceMarketPrice.HasValue == true)
+        {
+            return "Reference-only signal. Add active listings and sold comps to raise confidence.";
+        }
+
+        return "No real provider evidence has been captured yet.";
     }
 }
 
@@ -1099,8 +1159,9 @@ public sealed class DealScannerService(CardsDbContext db, IMarketSummaryService 
         var estimatedFees = EstimateResaleFees(market);
         var estimatedNetProfit = market - estimatedFees - listing.EffectivePrice;
         decimal? estimatedRoi = listing.EffectivePrice > 0 ? estimatedNetProfit / listing.EffectivePrice * 100m : null;
-        var liquidityScore = Math.Clamp((summary.SoldCount * 8m) + (summary.ListingCount * 1.5m) + ((summary.ConfidenceScore ?? 0m) * 35m), 0m, 100m);
-        var score = Math.Clamp(discountPercent * 2m + ((listing.MatchConfidence ?? 0.80m) * 40m), 0, 100);
+        var confidenceComponent = (summary.ConfidenceScore ?? 0m) * 0.35m;
+        var liquidityScore = Math.Clamp((summary.SoldCount * 8m) + (summary.ListingCount * 1.5m) + confidenceComponent, 0m, 100m);
+        var score = Math.Clamp(discountPercent * 1.6m + ((listing.MatchConfidence ?? 0.80m) * 30m) + ((summary.ConfidenceScore ?? 0m) * 0.20m), 0, 100);
         return new DealOpportunityDto
         {
             ListingId = listing.Id,
@@ -1308,6 +1369,21 @@ public sealed class MarketProviderHealthService(
         IsEnabled = enabled,
         IsHealthy = true,
         Status = enabled ? "Ready" : "Disabled",
-        Message = enabled ? "Provider is enabled." : "Provider scaffold is present but disabled by configuration."
+        Message = Message(source, type, enabled)
     };
+
+    private static string Message(string source, string type, bool enabled)
+    {
+        if (enabled)
+        {
+            return "Provider is enabled.";
+        }
+
+        if (source.Equals("eBay", StringComparison.OrdinalIgnoreCase) && type.Equals("SoldComps", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Sold comps are disabled: the current eBay Browse integration only supports active listings. Add an approved sold-comps source before treating deal confidence as strong.";
+        }
+
+        return "Provider scaffold is present but disabled by configuration.";
+    }
 }
