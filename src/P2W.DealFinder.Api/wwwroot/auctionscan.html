@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P2W DealFinder Auction Scan</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/scan" aria-label="P2W DealFinder">
+      <span>P2W</span>
+      <strong>DealFinder</strong>
+    </a>
+    <nav class="tabs" aria-label="DealFinder pages">
+      <a href="/scan">Price Scan</a>
+      <a href="/ebaylowest">eBay Lowest</a>
+      <a class="active" href="/auctionscan">Auction Scan</a>
+      <a href="/productdetails?source=pricecharting">PriceCharting Detail</a>
+      <a href="/productdetails?source=justtcg">JustTCG Detail</a>
+    </nav>
+    <div class="search-shell">
+      <span>Pokemon TCG</span>
+      <span>English</span>
+      <strong>PSA 10 Ending Soon</strong>
+    </div>
+  </header>
+
+  <main class="page scan-page">
+    <section class="scan-hero">
+      <div>
+        <p class="eyebrow">Auction Scout</p>
+        <h1>PSA 10 Ending Soon</h1>
+        <p class="subtitle">Find English Pokemon PSA 10 auctions ending in the next 6 hours, backed by PriceCharting market data and visible volume context.</p>
+      </div>
+      <div id="scanStatus" class="provider-pill">Ready</div>
+    </section>
+
+    <section class="panel scan-controls auction-controls" aria-label="Auction scan filters">
+      <label>
+        <span>Min Auction</span>
+        <input id="minPrice" type="number" min="0" step="1" value="1" />
+      </label>
+      <label>
+        <span>Max Auction</span>
+        <input id="maxPrice" type="number" min="1" step="1" value="250" />
+      </label>
+      <label>
+        <span>Ending</span>
+        <input id="minutes" type="number" min="1" max="1440" step="1" value="360" />
+      </label>
+      <label>
+        <span>Fallback</span>
+        <input id="fallbackMinutes" type="number" min="1" max="1440" step="1" value="360" />
+      </label>
+      <label>
+        <span>Optional Min 1yr Volume</span>
+        <input id="minVolume" type="number" min="0" step="100" value="0" />
+      </label>
+      <label>
+        <span>Candidate Pool</span>
+        <input id="candidatePool" type="number" min="5" max="50" step="1" value="10" />
+      </label>
+      <label>
+        <span>Limit</span>
+        <input id="limit" type="number" min="1" max="25" step="1" value="10" />
+      </label>
+      <button id="runScan" type="button" class="primary">Run Auction Scan</button>
+    </section>
+
+    <section class="metric-grid scan-metrics" id="scanMetrics"></section>
+
+    <section class="panel full-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Ending Auctions</p>
+          <h2 id="resultTitle">No auction scan run yet</h2>
+        </div>
+      </div>
+      <div class="scan-table-wrap">
+        <table class="scan-table auction-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Card</th>
+              <th>Ends</th>
+              <th>Market</th>
+              <th>1yr Vol</th>
+              <th>Auction Cost</th>
+              <th>Buy Now Low</th>
+              <th>Spread</th>
+              <th>Listing</th>
+            </tr>
+          </thead>
+          <tbody id="scanRows">
+            <tr><td colspan="9">Run the auction scan to load ending-soon opportunities.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/auctionscan.js" type="module"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P2W DealFinder eBay Lowest</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/scan" aria-label="P2W DealFinder">
+      <span>P2W</span>
+      <strong>DealFinder</strong>
+    </a>
+    <nav class="tabs" aria-label="DealFinder pages">
+      <a href="/scan">Price Scan</a>
+      <a class="active" href="/ebaylowest">eBay Lowest</a>
+      <a href="/auctionscan">Auction Scan</a>
+      <a href="/productdetails?source=pricecharting">PriceCharting Detail</a>
+      <a href="/productdetails?source=justtcg">JustTCG Detail</a>
+    </nav>
+    <div class="search-shell">
+      <span>Pokemon TCG</span>
+      <span>English</span>
+      <strong>PSA 10 Buy Now Sweep</strong>
+    </div>
+  </header>
+
+  <main class="page scan-page ebay-page">
+    <section class="scan-hero">
+      <div>
+        <p class="eyebrow">Live Market Scout</p>
+        <h1>eBay Lowest PSA 10</h1>
+        <p class="subtitle">Broad low-to-high eBay sweep matched against the local PriceCharting-backed catalog.</p>
+      </div>
+      <div id="scanStatus" class="provider-pill">Ready</div>
+    </section>
+
+    <section class="panel scan-controls ebay-controls" aria-label="eBay broad scan filters">
+      <label>
+        <span>Query</span>
+        <input id="query" type="text" value="Pokemon PSA 10" />
+      </label>
+      <label>
+        <span>Pages</span>
+        <input id="pages" type="number" min="1" max="100" step="1" value="1" />
+      </label>
+      <label>
+        <span>Limit</span>
+        <input id="take" type="number" min="1" max="250" step="1" value="50" />
+      </label>
+      <label>
+        <span>Min Listing</span>
+        <input id="minListing" type="number" min="0" step="1" value="10" />
+      </label>
+      <label>
+        <span>Max Listing</span>
+        <input id="maxListing" type="number" min="1" step="1" value="1000" />
+      </label>
+      <label>
+        <span>Condition</span>
+        <select id="condition">
+          <option value="graded" selected>Graded</option>
+          <option value="">Any</option>
+        </select>
+      </label>
+      <label>
+        <span>Min Market</span>
+        <input id="minMarket" type="number" min="0" step="1" value="25" />
+      </label>
+      <label>
+        <span>Max Market</span>
+        <input id="maxMarket" type="number" min="1" step="1" value="500" />
+      </label>
+      <label>
+        <span>Min Profit</span>
+        <input id="minProfit" type="number" min="0" step="1" value="10" />
+      </label>
+      <label>
+        <span>Min Margin %</span>
+        <input id="minMargin" type="number" min="0" step="1" value="10" />
+      </label>
+      <label>
+        <span>Min ROI %</span>
+        <input id="minRoi" type="number" min="0" step="1" value="10" />
+      </label>
+      <button id="runScan" type="button" class="primary">Run eBay Sweep</button>
+    </section>
+
+    <section class="metric-grid scan-metrics" id="scanMetrics"></section>
+
+    <section class="panel full-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Deal Candidates</p>
+          <h2 id="resultTitle">No sweep run yet</h2>
+        </div>
+        <a id="searchUrl" class="external-button" href="#" target="_blank" rel="noreferrer" hidden>Open eBay Search</a>
+      </div>
+      <div id="dealRows" class="deal-grid">
+        <div class="empty-state">Run the eBay sweep to load matched buy-now opportunities.</div>
+      </div>
+    </section>
+
+    <section class="diagnostic-grid">
+      <section class="panel">
+        <div class="panel-heading compact-heading">
+          <div>
+            <p class="eyebrow">Parser Diagnostics</p>
+            <h2>Returned Page</h2>
+          </div>
+        </div>
+        <div id="pageDiagnostics" class="rows"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading compact-heading">
+          <div>
+            <p class="eyebrow">Rejected Rows</p>
+            <h2>Classifier Breakdown</h2>
+          </div>
+        </div>
+        <div id="rejectionSummary" class="rows"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="/ebaylowest.js" type="module"></script>
+</body>
+</html>
+

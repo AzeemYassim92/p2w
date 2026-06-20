@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P2W DealFinder Product Details</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/productdetails?source=justtcg" aria-label="P2W DealFinder">
+      <span>P2W</span>
+      <strong>DealFinder</strong>
+    </a>
+    <nav class="tabs" aria-label="Provider pages">
+      <a href="/scan">Price Scan</a>
+      <a href="/ebaylowest">eBay Lowest</a>
+      <a href="/auctionscan">Auction Scan</a>
+      <a data-source-link="justtcg" href="/productdetails?source=justtcg">JustTCG</a>
+      <a data-source-link="pricecharting" href="/productdetails?source=pricecharting">PriceCharting</a>
+    </nav>
+    <div class="search-shell">
+      <span>Pokemon TCG</span>
+      <span>Cards</span>
+      <strong>Phantasmal Flames</strong>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero-grid">
+      <div class="identity-stack">
+        <p class="eyebrow" id="providerEyebrow">Provider Analysis</p>
+        <h1 id="cardName">Mega Lopunny ex</h1>
+        <p class="subtitle" id="cardSubtitle">Phantasmal Flames #128</p>
+
+        <div class="stats-card identity-card">
+          <dl id="identityDetails"></dl>
+        </div>
+      </div>
+
+      <aside class="card-art-panel">
+        <div class="card-art-frame">
+          <img id="cardImage" alt="Mega Lopunny ex card art" />
+          <div class="card-art-fallback">Mega Lopunny ex</div>
+        </div>
+        <div class="provider-pill" id="providerStatus">Loading</div>
+      </aside>
+    </section>
+
+    <section class="source-strip">
+      <div>
+        <p class="eyebrow">Market Lens</p>
+        <h2 id="sourceTitle">Loading</h2>
+      </div>
+      <button id="refreshButton" type="button">Refresh Source</button>
+    </section>
+
+    <section class="metric-grid" id="metricGrid"></section>
+
+    <section class="analysis-layout">
+      <article class="panel chart-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Trend</p>
+            <h2 id="chartTitle">Price History</h2>
+          </div>
+          <span id="chartBadge">180d</span>
+        </div>
+        <div id="chart" class="chart"></div>
+      </article>
+
+      <article class="panel detail-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Evidence</p>
+            <h2 id="evidenceTitle">Provider Fields</h2>
+          </div>
+        </div>
+        <div id="evidenceList" class="evidence-list"></div>
+      </article>
+    </section>
+
+    <section class="panel full-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Rows</p>
+          <h2 id="tableTitle">Provider Variants</h2>
+        </div>
+      </div>
+      <div id="rows" class="rows"></div>
+    </section>
+  </main>
+
+  <script src="/productdetails.js" type="module"></script>
+</body>
+</html>
+

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P2W DealFinder Scan</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/scan" aria-label="P2W DealFinder">
+      <span>P2W</span>
+      <strong>DealFinder</strong>
+    </a>
+    <nav class="tabs" aria-label="DealFinder pages">
+      <a class="active" href="/scan">Price Scan</a>
+      <a href="/ebaylowest">eBay Lowest</a>
+      <a href="/auctionscan">Auction Scan</a>
+      <a href="/productdetails?source=pricecharting">PriceCharting Detail</a>
+      <a href="/productdetails?source=justtcg">JustTCG Detail</a>
+    </nav>
+    <div class="search-shell">
+      <span>Pokemon TCG</span>
+      <span>PSA 10</span>
+      <strong>PriceCharting Scan</strong>
+    </div>
+  </header>
+
+  <main class="page scan-page">
+    <section class="scan-hero">
+      <div>
+        <p class="eyebrow">Inventory Scout</p>
+        <h1>PSA 10 Price Scan</h1>
+        <p class="subtitle">Find Pokemon cards inside a target graded market range before we layer in live buy listings.</p>
+      </div>
+      <div id="scanStatus" class="provider-pill">Ready</div>
+    </section>
+
+    <section class="panel scan-controls" aria-label="Scan filters">
+      <label>
+        <span>Min PSA 10</span>
+        <input id="minPrice" type="number" min="0" step="1" value="10" />
+      </label>
+      <label>
+        <span>Max PSA 10</span>
+        <input id="maxPrice" type="number" min="0" step="1" value="200" />
+      </label>
+      <label>
+        <span>Grade</span>
+        <select id="grade">
+          <option value="psa10" selected>PSA 10</option>
+          <option value="grade9">Grade 9</option>
+          <option value="bgs10">BGS 10</option>
+          <option value="cgc10">CGC 10</option>
+          <option value="sgc10">SGC 10</option>
+          <option value="ungraded">Ungraded</option>
+        </select>
+      </label>
+      <label>
+        <span>Limit</span>
+        <input id="limit" type="number" min="1" max="50" step="1" value="10" />
+      </label>
+      <button id="runScan" type="button" class="primary">Run Scan</button>
+    </section>
+
+    <section class="metric-grid scan-metrics" id="scanMetrics"></section>
+
+    <section class="scan-tabs" aria-label="eBay listing mode">
+      <button id="buyNowTab" type="button" class="primary">Lowest Found Price</button>
+      <button id="auctionTab" type="button">Lowest Found Auction</button>
+    </section>
+
+    <section class="panel full-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Candidates</p>
+          <h2 id="resultTitle">No scan run yet</h2>
+        </div>
+      </div>
+      <div class="scan-table-wrap">
+        <table class="scan-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Card</th>
+              <th>Set</th>
+              <th>Market</th>
+              <th>Raw</th>
+              <th>30d / 1yr Vol</th>
+              <th>10% Target Buy</th>
+              <th id="listingHeader">Lowest Found Price</th>
+              <th>Gap</th>
+            </tr>
+          </thead>
+          <tbody id="scanRows">
+            <tr><td colspan="9">Run the first scan to load candidates.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/scan.js" type="module"></script>
+</body>
+</html>
+
+
+
+

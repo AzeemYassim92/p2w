@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\P2W.DealFinder.Application\P2W.DealFinder.Application.csproj" />
+    <ProjectReference Include="..\P2W.DealFinder.Infrastructure\P2W.DealFinder.Infrastructure.csproj" />
+    <ProjectReference Include="..\P2W.DealFinder.Domain\P2W.DealFinder.Domain.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
